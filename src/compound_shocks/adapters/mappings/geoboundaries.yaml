@@ -1,0 +1,3 @@
+# Assumed geoBoundaries property names; verify against a downloaded fallback file.
+shapeID: admin2_id
+shapeName: name

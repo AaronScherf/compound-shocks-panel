@@ -1,6 +1,7 @@
 """Seeded generator for synthetic test fixtures. Nothing here is real data. Run: python tests/fixtures/make_fixtures.py"""
 
 import csv
+import json
 import random
 from pathlib import Path
 
@@ -37,5 +38,18 @@ def write_acled(path: Path) -> None:
         writer.writerows(acled_rows())
 
 
+def write_boundaries(path: Path, *, fallback: bool = False) -> None:
+    """Three synthetic unit squares, with a shared edge and one separate cell."""
+    features = []
+    for code, name, x in [("B", "Bravo", 0), ("A", "Alpha", 1), ("C", "Charlie", 3)]:
+        props = {"shapeID": code, "shapeName": name} if fallback else {"ADM2_PCODE": code, "ADM2_EN": name}
+        features.append({"type": "Feature", "properties": props, "geometry": {
+            "type": "Polygon", "coordinates": [[[x, 0], [x + 1, 0], [x + 1, 1], [x, 1], [x, 0]]],
+        }})
+    path.write_text(json.dumps({"type": "FeatureCollection", "features": features}), encoding="utf-8")
+
+
 if __name__ == "__main__":
     write_acled(HERE / "acled_fixture.csv")
+    write_boundaries(HERE / "codab_fixture.geojson")
+    write_boundaries(HERE / "geoboundaries_fixture.geojson", fallback=True)
