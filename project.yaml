@@ -1,0 +1,25 @@
+schema_version: 0.1.0
+name: Compound Shocks Panel
+kind: study
+purpose: academic_publication
+confidentiality: public
+# Replace the placeholder audience with the real readers and users; add one entry per audience.
+audiences:
+  - name: primary-readers
+    needs: TODO what this audience needs from the project
+    technical_level: practitioner
+    channel: public
+publication:
+  venues:
+    - "TODO: target venue"
+  preregistration: ''
+# Each final product, its audience, and the command that builds it. `reproduce` builds all of them.
+deliverables:
+  - id: report
+    audience: primary-readers
+    format: pdf
+    build: TODO build command
+taxonomy:
+  tags: []
+sources: []
+siblings: []

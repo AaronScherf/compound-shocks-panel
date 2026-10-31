@@ -1,0 +1,15 @@
+schema_version: 0.1.0
+role: conflict_events
+provider: ACLED
+title: ACLED event data export (Research Tier, myACLED account)
+query: Manual export from acleddata.com for Somalia; event dates 1997-01-01 to 2025-10-31. API fetch needs ACLED_EMAIL and ACLED_PASSWORD environment variables.
+coverage_space: Somalia
+coverage_time: '1997-01-01/2025-10-31'
+variables: []
+access_class: account_required
+reuse_terms: ACLED EULA (8 July 2025) and Attribution Policy; raw rows must not be redistributed; aggregates and figures may be, with citation. See notes/ACLED Terms - Redistribution Findings.md (Gemini reading, not confirmed with ACLED).
+verification_status: proposed
+find_in_other_geography: Event-level political violence data with point coordinates, event type and fatalities for the new country, from ACLED (Research Tier data lags about 12 months).
+accessed: '2026-10-31'
+applied_filters: Somalia, event dates 1997-01-01 to 2025-10-31
+manipulation: none yet; raw export only. Planned - aggregated to district-month totals (events, fatalities) by point-in-polygon on COD-AB Admin 2.

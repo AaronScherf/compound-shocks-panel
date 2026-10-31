@@ -1,0 +1,12 @@
+schema_version: 0.1.0
+role: displacement
+provider: UNHCR/NRC PRMN
+title: Somalia - Internally Displaced Persons (IDPs), UNHCR-led PRMN
+query: HDX dataset somalia-internally-displaced-persons-idps (CSV and XLSX resources); no key needed. Columns not yet inspected.
+coverage_space: Somalia
+coverage_time: '2016-01/2023-08'
+variables: []
+access_class: open
+reuse_terms: CC BY (as listed on HDX); verify on the dataset page.
+verification_status: proposed
+find_in_other_geography: Monthly district-level displacement movements with a reason for displacement, ideally origin and destination districts (Sudan uses IOM DTM, which records stocks, not flows; see the Sudan findings).

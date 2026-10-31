@@ -1,0 +1,12 @@
+schema_version: 0.1.0
+role: admin_boundaries
+provider: OCHA COD-AB
+title: Somalia - Subnational Administrative Boundaries (COD-AB)
+query: HDX dataset cod-ab-som, resource som_admin_boundaries.geojson.zip; no key needed. Boundary vintage (valid-on date) not yet read.
+coverage_space: Somalia, Admin 1 and Admin 2
+coverage_time: '2025-01/2025-10'
+variables: []
+access_class: open
+reuse_terms: CC BY-IGO (as listed on HDX).
+verification_status: proposed
+find_in_other_geography: OCHA COD-AB for the country (dataset cod-ab-<iso3> on HDX); fall back to geoBoundaries if missing (requires a harmonization record). Record the vintage.

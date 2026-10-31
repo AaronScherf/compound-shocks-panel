@@ -1,0 +1,26 @@
+schema_version: 0.1.0
+geography: Somalia
+# Window ends 2023-08 because the HDX PRMN displacement dataset ends then (owner decision 2026-10-31).
+period:
+  start: '2021-01-01'
+  end: '2023-08-31'
+sources:
+  conflict_events:
+    provider: ACLED
+    dataset: ACLED export, Somalia
+  displacement:
+    provider: UNHCR/NRC PRMN
+    dataset: Somalia - Internally Displaced Persons (IDPs), HDX somalia-internally-displaced-persons-idps
+  prices:
+    provider: WFP
+    dataset: Somalia - Food Prices, HDX wfp-food-prices-for-somalia
+  rainfall:
+    provider: UCSB CHC CHIRPS
+    dataset: CHIRPS v2.0 monthly, Africa
+  admin_boundaries:
+    provider: OCHA COD-AB
+    dataset: Somalia - Subnational Administrative Boundaries, HDX cod-ab-som
+parameters:
+  imported_basket: [wheat flour, cooking oil]
+  local_basket: [red sorghum, white maize]
+  base_month: '2021-01'

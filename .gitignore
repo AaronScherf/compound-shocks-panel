@@ -1,0 +1,13 @@
+/instances/*/data/raw/*
+!/instances/*/data/raw/.gitkeep
+/instances/*/data/derived/*
+!/instances/*/data/derived/.gitkeep
+/instances/*/outputs/*
+!/instances/*/outputs/.gitkeep
+/.env
+/.env.*
+!/.env.example
+/.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/

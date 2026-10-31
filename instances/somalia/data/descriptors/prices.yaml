@@ -1,0 +1,12 @@
+schema_version: 0.1.0
+role: prices
+provider: WFP
+title: Somalia - Food Prices (WFP)
+query: HDX dataset wfp-food-prices-for-somalia, resource Somalia - Food Prices (CSV); no key needed. Columns, units and market coverage not yet inspected.
+coverage_space: Somalia
+coverage_time: '1995-01/2026-08'
+variables: []
+access_class: open
+reuse_terms: CC BY-IGO (as listed on HDX).
+verification_status: proposed
+find_in_other_geography: Monthly market prices for wheat or wheat flour, cooking oil, sorghum and maize with unit and currency, from WFP VAM (WFP Sudan lacks casual wage and live-goat prices).
