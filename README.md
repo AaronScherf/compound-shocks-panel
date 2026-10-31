@@ -1,7 +1,11 @@
 # Compound Shocks Panel
 
-<!-- One paragraph: what question this project answers and why it matters. -->
-TODO: describe the project.
+This project builds a district-by-month panel combining conflict events (ACLED), rainfall (CHIRPS), food
+prices (WFP) and displacement (PRMN) over official district boundaries, starting with Somalia (2021-01 to
+2023-08). The aim is to find out what these open sources can and cannot support before any modeling. This
+phase is data work only: ingestion, spatial joins, a panel, exploratory plots and an audit memo. It makes no
+causal claims. The same steps run for another country by adding an instance folder (Sudan is the planned
+portability test).
 
 ## Quick start
 
@@ -31,10 +35,13 @@ Extension columns depend on what a country's sources provide: `displaced_individ
 ## AI and compute
 
 - This project is designed to run on an ordinary laptop with no GPU. See `compute.yaml` for the assumed limits.
-- State here which steps, if any, need a paid AI subscription or heavy compute, what they cost, how to get
-  access, and the free or cheaper alternative: TODO.
-- Outputs of any AI-assisted step are shipped as plain files, so you do not need the subscription to reproduce
-  the results.
+- No step needs a paid AI subscription, an API key for an AI service, or heavy compute. The pipeline is
+  ordinary Python (pandas, geopandas, rasterio) and runs on a laptop. Run time on the full Somalia
+  rasters is still to be measured (see the Task 14 verification note).
+- AI coding assistants helped write the code, but nothing in `reproduce` calls one. Raw ACLED rows must never
+  be sent to an external AI service (see `agents.yaml`).
+- The only account needed is a free ACLED registration, used with `ACLED_EMAIL` and `ACLED_PASSWORD`
+  environment variables.
 
 ## Using this for another country or question
 

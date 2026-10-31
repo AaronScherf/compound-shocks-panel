@@ -6,19 +6,20 @@ confidentiality: public
 # Replace the placeholder audience with the real readers and users; add one entry per audience.
 audiences:
   - name: primary-readers
-    needs: TODO what this audience needs from the project
+    needs: A documented, re-runnable district-month panel (conflict, rainfall, prices, displacement) and a data audit that says what the sources can and cannot support.
     technical_level: practitioner
     channel: public
 publication:
+  # Phase A produces a data panel and audit memo only. A venue is chosen at the review gate, after the audit and literature gap check.
   venues:
-    - "TODO: target venue"
+    - "Not yet chosen: decided at the Phase A review gate"
   preregistration: ''
 # Each final product, its audience, and the command that builds it. `reproduce` builds all of them.
 deliverables:
-  - id: report
+  - id: panel
     audience: primary-readers
-    format: pdf
-    build: TODO build command
+    format: csv
+    build: uv run python -m compound_shocks reproduce --instance somalia
 taxonomy:
   tags: []
 sources: []

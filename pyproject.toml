@@ -9,7 +9,6 @@ dependencies = [
     "geopandas",
     "rasterio",
     "shapely",
-    "statsmodels",
     "matplotlib",
     "doit",
     "requests",

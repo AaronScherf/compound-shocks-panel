@@ -21,6 +21,8 @@ Record each substantive decision with date, author, evidence, alternatives consi
 | 2026-10-31 | Pilot is Layer 1 only; cross-country comparison uses the common core | Owner decision; Sudan source check | Panel columns, Sudan instance |
 | 2026-10-31 | Somalia window 2021-01 to 2023-08; CHIRPS v2.0; boundaries from OCHA COD-AB with geoBoundaries as fallback | HDX PRMN dataset ends 2023-08; owner decision | Somalia config, descriptors |
 | 2026-10-31 | Committed ACLED aggregates are district-month totals only until ACLED answers the low-count question | ACLED terms findings (Gemini reading, unconfirmed) | Publishable aggregates |
+| 2026-10-31 | Scope realigned to Phase A: data ingestion, adapters, panel, exploratory analysis, audit memo and Sudan portability (data pipeline only). Modeling, price-basket decompositions, cross-country tests and the paper are Phase B, started only after a review gate (data audit, literature gap analysis, owner approval) | Owner decision after the pilot grew into a full research implementation; Gemini scope note | Plan tasks 11, 12, 15; project.yaml deliverables; `statsmodels` removed |
+| 2026-10-31 | Panel conventions: `price_*` is the mean over markets and matching commodities; `displaced_individuals` counts people leaving a district (origin); unmatched district names are reported, not fatal | Task 9 and 10 implementation; owner may revise | Panel columns, run report |
 
 ## Verification states
 
