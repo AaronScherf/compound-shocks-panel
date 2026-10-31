@@ -1,7 +1,7 @@
 schema_version: 0.1.0
 name: Compound Shocks Panel
 kind: study
-purpose: academic_publication
+purpose: side_project
 confidentiality: public
 # Replace the placeholder audience with the real readers and users; add one entry per audience.
 audiences:
@@ -10,9 +10,8 @@ audiences:
     technical_level: practitioner
     channel: public
 publication:
-  # Phase A produces a data panel and audit memo only. A venue is chosen at the review gate, after the audit and literature gap check.
-  venues:
-    - "Not yet chosen: decided at the Phase A review gate"
+  # Purpose is side_project because the charter has no exploratory category; revisit it at the review gate if the work becomes a paper. Phase A produces a data panel and audit memo only. A venue is chosen at the review gate, after the audit and literature gap check.
+  venues: []
   preregistration: ''
 # Each final product, its audience, and the command that builds it. `reproduce` builds all of them.
 deliverables:
