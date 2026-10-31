@@ -1,0 +1,25 @@
+schema_version: 0.1.0
+geography: Synthland
+period:
+  start: '2021-01-01'
+  end: '2021-03-31'
+sources:
+  conflict_events:
+    provider: ACLED
+    dataset: synthetic ACLED-format fixture
+  displacement:
+    provider: UNHCR/NRC PRMN
+    dataset: synthetic PRMN-format fixture
+  prices:
+    provider: WFP
+    dataset: synthetic WFP-format fixture
+  rainfall:
+    provider: UCSB CHC CHIRPS
+    dataset: synthetic CHIRPS-format fixture
+  admin_boundaries:
+    provider: OCHA COD-AB
+    dataset: synthetic boundaries fixture
+parameters:
+  imported_basket: [wheat flour]
+  local_basket: [sorghum]
+  base_month: '2021-01'
