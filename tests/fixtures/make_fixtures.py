@@ -49,7 +49,22 @@ def write_boundaries(path: Path, *, fallback: bool = False) -> None:
     path.write_text(json.dumps({"type": "FeatureCollection", "features": features}), encoding="utf-8")
 
 
+def write_chirps(directory: Path) -> None:
+    """Two 1-by-4 monthly grids; -9999 is a missing cell."""
+    import numpy as np
+    import rasterio
+    from rasterio.transform import from_origin
+
+    directory.mkdir(exist_ok=True)
+    for month, values in {"2021-01": [10, 20, -9999, -9999], "2021-02": [0, 40, 30, -9999]}.items():
+        with rasterio.open(directory / f"chirps_{month}.tif", "w", driver="GTiff", width=4, height=1,
+                           count=1, dtype="float32", crs="EPSG:4326", transform=from_origin(0, 1, 1, 1),
+                           nodata=-9999) as dst:
+            dst.write(np.array([values], dtype="float32"), 1)
+
+
 if __name__ == "__main__":
     write_acled(HERE / "acled_fixture.csv")
     write_boundaries(HERE / "codab_fixture.geojson")
     write_boundaries(HERE / "geoboundaries_fixture.geojson", fallback=True)
+    write_chirps(HERE / "chirps")
