@@ -2,7 +2,11 @@ name: ci
 on: [push, pull_request]
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -10,7 +14,9 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv sync --locked
       - run: uv run reprokit validate
+      - run: uv run ruff check
       - run: uv run pytest
       - uses: gitleaks/gitleaks-action@v2
+        if: runner.os == 'Linux'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

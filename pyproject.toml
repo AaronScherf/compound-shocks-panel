@@ -17,3 +17,16 @@ dependencies = [
 
 [dependency-groups]
 dev = ["pytest", "ruff"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/compound_shocks"]
+
+[project.scripts]
+compound-shocks = "compound_shocks.cli:main"
