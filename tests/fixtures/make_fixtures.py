@@ -63,8 +63,29 @@ def write_chirps(directory: Path) -> None:
             dst.write(np.array([values], dtype="float32"), 1)
 
 
+def write_market_fixtures(directory: Path) -> None:
+    with (directory / "wfp_prices_fixture.csv").open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["date", "market", "admin2", "commodity", "unit", "currency", "price"])
+        writer.writerows([
+            ["2021-01-15", "Market A", "Alpha", "Sorghum", "kg", "SOS", 10],
+            ["2021-02-15", "Market A", "Alpha", "Sorghum", "bag", "SOS", 20],
+            ["2021-03-15", "Market A", "Alpha", "Sorghum", "kg", "USD", 1],
+        ])
+    with (directory / "prmn_fixture.csv").open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["month", "origin_admin2", "dest_admin2", "individuals", "reason"])
+        writer.writerows([
+            ["2021-01", "Alpha", "Bravo", 20, "Drought"],
+            ["2021-02", "Alpha", "Bravo", "", "Conflict"],
+            ["2021-03", "Alpha", "Bravo", 5, "Flood"],
+            ["2021-04", "Alpha", "Bravo", 3, "Unclear"],
+        ])
+
+
 if __name__ == "__main__":
     write_acled(HERE / "acled_fixture.csv")
     write_boundaries(HERE / "codab_fixture.geojson")
     write_boundaries(HERE / "geoboundaries_fixture.geojson", fallback=True)
     write_chirps(HERE / "chirps")
+    write_market_fixtures(HERE)

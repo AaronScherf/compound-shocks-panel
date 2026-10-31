@@ -1,0 +1,6 @@
+# Assumed PRMN export column names; Task 14 must verify against the downloaded CSV.
+month: month
+origin_admin2: origin_admin2
+dest_admin2: dest_admin2
+individuals: individuals
+reason: reason

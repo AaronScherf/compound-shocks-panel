@@ -1,0 +1,4 @@
+date,market,admin2,commodity,unit,currency,price
+2021-01-15,Market A,Alpha,Sorghum,kg,SOS,10
+2021-02-15,Market A,Alpha,Sorghum,bag,SOS,20
+2021-03-15,Market A,Alpha,Sorghum,kg,USD,1

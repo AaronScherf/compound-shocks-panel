@@ -1,0 +1,8 @@
+# Assumed WFP export column names; Task 14 must verify against the downloaded CSV.
+date: date
+market: market
+admin2: admin2
+commodity: commodity
+unit: unit
+currency: currency
+price: price

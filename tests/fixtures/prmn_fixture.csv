@@ -1,0 +1,5 @@
+month,origin_admin2,dest_admin2,individuals,reason
+2021-01,Alpha,Bravo,20,Drought
+2021-02,Alpha,Bravo,,Conflict
+2021-03,Alpha,Bravo,5,Flood
+2021-04,Alpha,Bravo,3,Unclear
