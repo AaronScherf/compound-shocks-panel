@@ -20,6 +20,14 @@ use, and what to look for if you need the same kind of data for another place. R
 repository. For sources that need an account, register with the provider, put your credentials in `.env`
 (copy `.env.example`), and run the fetch step.
 
+## Panel columns
+
+Core columns exist for every country and are the only ones used in cross-country comparison: `events`,
+`fatalities`, `precip_mm`, `coverage_frac`, `price_sorghum`, `price_wheat`.
+
+Extension columns depend on what a country's sources provide: `displaced_individuals`, `price_goat`,
+`wage_labor`, `tot_goat_sorghum`, `tot_wage_sorghum`.
+
 ## AI and compute
 
 - This project is designed to run on an ordinary laptop with no GPU. See `compute.yaml` for the assumed limits.
