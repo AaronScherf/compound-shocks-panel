@@ -30,3 +30,6 @@ packages = ["src/compound_shocks"]
 
 [project.scripts]
 compound-shocks = "compound_shocks.cli:main"
+
+[tool.pytest.ini_options]
+markers = ["real_data: reads real downloaded data when present; skipped otherwise"]

@@ -1,0 +1,13 @@
+﻿event_id_cnty,event_date,year,time_precision,disorder_type,event_type,sub_event_type,actor1,assoc_actor_1,inter1,interaction,civilian_targeting,iso,region,country,admin1,admin2,admin3,location,latitude,longitude,geo_precision,source,source_scale,notes,fatalities,tags,timestamp
+SYN0000,2021-06-05,2021,,,Riots,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.6509,0.0724,3,,,synthetic,0,,
+SYN0001,2021-06-19,2021,,,Battles,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.9097,0.2147,1,,,synthetic,3,,
+SYN0002,2021-07-03,2021,,,Battles,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.0907,0.4245,3,,,synthetic,0,,
+SYN0003,2021-04-21,2021,,,Violence against civilians,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.583,0.0619,3,,,synthetic,3,,
+SYN0004,2021-01-08,2021,,,Battles,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.5567,0.1332,2,,,synthetic,1,,
+SYN0005,2021-09-04,2021,,,Violence against civilians,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.3085,0.8161,1,,,synthetic,0,,
+SYN0006,2021-10-19,2021,,,Violence against civilians,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.1879,0.0974,3,,,synthetic,0,,
+SYN0007,2021-10-02,2021,,,Violence against civilians,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.206,0.6804,2,,,synthetic,2,,
+SYN0008,2021-08-19,2021,,,Riots,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.3616,0.2484,1,,,synthetic,5,,
+SYN0009,2021-04-03,2021,,,Violence against civilians,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.3002,0.4951,2,,,synthetic,5,,
+SYN0010,2021-08-10,2021,,,Violence against civilians,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.9802,0.1181,2,,,synthetic,1,,
+SYN0011,2021-06-05,2021,,,Riots,Synthetic,Synthetic actor,,,,,,,Synthland,,,,,0.4217,0.962,1,,,synthetic,4,,
