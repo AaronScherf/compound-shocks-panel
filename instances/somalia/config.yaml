@@ -24,3 +24,12 @@ parameters:
   imported_basket: [wheat flour, cooking oil]
   local_basket: [red sorghum, white maize]
   base_month: '2021-01'
+  # Processing decision (owner, 2026-11-02): PRMN and WFP report Mogadishu as one unit, "Banadir", but COD-AB v03
+  # (valid 2025-01-08) splits it into 17 districts plus an "Unspecified" remainder polygon. All 18 polygons are
+  # dissolved into one unit so every source maps to the same unit. See protocol.md, decision log.
+  merge_districts:
+    - id: SO22
+      name: Banadir
+      members:
+        [SO2201, SO2202, SO2203, SO2204, SO2205, SO2206, SO2207, SO2208, SO2209, SO2210, SO2211, SO2212, SO2213,
+         SO2214, SO2215, SO2216, SO2217, Unspecified]

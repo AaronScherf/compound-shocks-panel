@@ -1,0 +1,3 @@
+# WFP market -> district name, for price rows whose admin1/admin2 are blank in the source (checked 2026-11-02:
+# the 204 rows in the 2021-01..2023-08 window all belong to the Wadajir market in Mogadishu, i.e. Banadir).
+Wadajir: Banadir

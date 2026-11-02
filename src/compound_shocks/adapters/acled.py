@@ -10,7 +10,8 @@ from compound_shocks.schema import ROLE_COLUMNS
 
 MAPPING = Path(__file__).parent / "mappings" / "acled.yaml"
 # Columns kept as-is: already carry their canonical names in the ACLED export.
-PASSTHROUGH = ["event_type", "sub_event_type", "actor1", "fatalities", "geo_precision"]
+EVENT_FIELDS = ["date", "lat", "lon", "event_type", "sub_event_type", "fatalities", "geo_precision"]
+PASSTHROUGH =["event_type", "sub_event_type", "actor1", "fatalities", "geo_precision"]
 
 
 class AcledAdapter:
@@ -21,8 +22,25 @@ class AcledAdapter:
         return sorted(Path(raw_dir).glob("*.csv"))
 
     def read(self, paths: list[Path], instance: dict) -> pd.DataFrame:
-        frames = [self._read_one(path) for path in paths]
-        return pd.concat(frames, ignore_index=True)
+        combined = pd.concat([self._read_one(path) for path in paths], ignore_index=True)
+        repeats = combined.duplicated("event_id", keep="first")
+        decisions = []
+        if repeats.any():
+            # The export repeats an event once per actor row: same event, different actor columns. Keep one row per
+            # event (the first in file order); actor1 is then arbitrary, and the panel does not use it.
+            details = combined.groupby("event_id")[EVENT_FIELDS].nunique(dropna=False).gt(1).any(axis=1)
+            disagreeing = details[details].index.tolist()
+            if disagreeing:
+                raise ValueError(
+                    f"ACLED: {len(disagreeing)} event_id(s) appear with different event details, e.g. {disagreeing[:3]}"
+                )
+            combined = combined[~repeats].reset_index(drop=True)
+            decisions.append(
+                f"ACLED: collapsed {int(repeats.sum())} extra rows sharing an event_id (one row per actor) "
+                f"to one row per event; {len(combined)} events"
+            )
+        combined.attrs["decisions"] = decisions
+        return combined
 
     def _read_one(self, path: Path) -> pd.DataFrame:
         raw = pd.read_csv(path, encoding="utf-8-sig", dtype={"event_id_cnty": str})

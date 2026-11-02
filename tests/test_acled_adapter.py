@@ -65,3 +65,34 @@ def test_real_export_header_maps():
         header = next(csv.reader(handle))  # header only: no event rows are read
     mapping = load_mapping(Path(__file__).parent.parent / "src/compound_shocks/adapters/mappings/acled.yaml")
     assert set(mapping) <= set(header)
+
+
+def _with_duplicates(tmp_path, change=None):
+    with FIXTURE.open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    first = dict(rows[0], actor1="Second actor")
+    if change:
+        first.update(change)
+    path = tmp_path / "dups.csv"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows + [first])
+    return path
+
+
+def test_actor_level_duplicates_collapse_to_one_row_per_event(tmp_path):
+    frame = AcledAdapter().read([_with_duplicates(tmp_path)], {})
+    assert len(frame) == 12 and frame["event_id"].is_unique
+    assert frame["fatalities"].sum() == AcledAdapter().read([FIXTURE], {})["fatalities"].sum()
+    assert any("collapsed 1" in decision for decision in frame.attrs["decisions"])
+
+
+def test_input_without_duplicates_records_no_decision():
+    assert AcledAdapter().read([FIXTURE], {}).attrs["decisions"] == []
+
+
+def test_duplicates_that_disagree_on_event_details_raise(tmp_path):
+    path = _with_duplicates(tmp_path, change={"fatalities": "99"})
+    with pytest.raises(ValueError, match="SYN0000"):
+        AcledAdapter().read([path], {})

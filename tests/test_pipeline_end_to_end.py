@@ -129,3 +129,82 @@ def test_missing_role_stops_with_exit_1(root, capsys):
 
 def test_unknown_instance_stops_with_exit_1(root):
     assert reproduce(root, "nowhere") == 1
+
+
+def merged_instance(root, aliases=True):
+    instance = make_instance(root, "merged")
+    config = instance / "config.yaml"
+    config.write_text(
+        config.read_text(encoding="utf-8") + "  merge_districts:\n    - id: AB\n      name: Merged\n      members: [A, B]\n",
+        encoding="utf-8",
+    )
+    if aliases:
+        crosswalks = instance / "crosswalks"
+        crosswalks.mkdir()
+        (crosswalks / "district_names.yaml").write_text("Alpha: Merged\nBravo: Merged\n", encoding="utf-8")
+    return instance
+
+
+def test_merge_and_aliases_come_from_instance_files(root):
+    merged_instance(root)
+    assert reproduce(root, "merged") == 0
+    derived, _ = paths(root, "merged")
+    panel = pd.read_csv(derived / "panel.csv", dtype={"admin2_id": str, "month": str}).set_index(["admin2_id", "month"])
+    assert sorted(panel.index.get_level_values("admin2_id").unique()) == ["AB", "C"]
+    assert panel.loc[("AB", "2021-01"), "price_sorghum"] == 10 and panel.loc[("AB", "2021-01"), "displaced_individuals"] == 25
+
+
+def test_run_report_and_manifest_record_every_processing_decision(root):
+    merged_instance(root)
+    reproduce(root, "merged")
+    _, outputs = paths(root, "merged")
+    report = json.loads((outputs / "run_report.json").read_text(encoding="utf-8"))
+    assert "merged 2 districts (A, B) into AB (Merged)" in report["decisions"]
+    assert any("district_names.yaml" in decision for decision in report["decisions"])
+    assert report["stats"]["boundary_vintage"] == "v03, valid on 2025-01-08"
+    manifest = json.loads((outputs / "manifest.json").read_text(encoding="utf-8"))
+    assert set(manifest["instance_files"]) == {"config.yaml", "crosswalks/district_names.yaml"}
+    assert manifest["parameters"]["merge_districts"][0]["id"] == "AB"
+
+
+def test_editing_a_crosswalk_reruns_the_fuse_step(root):
+    instance = merged_instance(root)
+    reproduce(root, "merged")
+    log = instance / "data/derived/ran.log"
+    before = len(log.read_text().split())
+    (instance / "crosswalks/district_names.yaml").write_text("Alpha: Merged\nBravo: Merged\n# edited\n", encoding="utf-8")
+    assert reproduce(root, "merged") == 0
+    assert "fuse" in log.read_text().split()[before:]
+
+
+def test_unmatched_names_are_reported_not_fatal(root):
+    merged_instance(root, aliases=False)
+    assert reproduce(root, "merged") == 0
+    _, outputs = paths(root, "merged")
+    report = json.loads((outputs / "run_report.json").read_text(encoding="utf-8"))
+    assert any("Alpha" in warning and "unmatched" in warning for warning in report["warnings"])
+
+
+def test_bad_merge_member_stops_with_exit_1(root, capsys):
+    instance = merged_instance(root)
+    config = instance / "config.yaml"
+    config.write_text(config.read_text(encoding="utf-8").replace("[A, B]", "[A, ZZ]"), encoding="utf-8")
+    assert reproduce(root, "merged") == 1
+    assert not (instance / "outputs/manifest.json").exists()
+
+
+def test_events_outside_the_study_period_are_excluded_and_reported(root):
+    reproduce(root)
+    _, outputs = paths(root)
+    report = json.loads((outputs / "run_report.json").read_text(encoding="utf-8"))
+    assert any("outside the study period 2021-01-01 to 2021-03-31" in decision for decision in report["decisions"])
+    assert report["stats"]["events_in_period"] + report["stats"]["events_outside_period"] == report["stats"]["rows_conflict_events"]
+    assert report["stats"]["events_outside_period"] > 0
+
+
+def test_price_rows_outside_the_period_are_reported_as_a_decision(root):
+    price_file = root / "instances/somalia/data/raw/prices/wfp_prices_fixture.csv"
+    price_file.write_text(price_file.read_text() + "2015-01-15,Market A,Alpha,Sorghum,kg,SOS,9\n")
+    reproduce(root)
+    report = json.loads((paths(root)[1] / "run_report.json").read_text(encoding="utf-8"))
+    assert any("WFP" in decision and "dropped 1" in decision for decision in report["decisions"])

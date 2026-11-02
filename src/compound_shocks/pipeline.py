@@ -11,6 +11,7 @@ from reprokit.manifest import (
     build_manifest,
     code_version,
     collect_role_files,
+    hash_file,
     resolved_packages,
     write_manifest,
 )
@@ -19,10 +20,16 @@ from reprokit.validate import validate_document
 
 from compound_shocks.adapters import acled, boundaries, chirps, prmn, wfp_prices  # noqa: F401  (register adapters)
 from compound_shocks.adapters.base import get_adapter
-from compound_shocks.crosswalk import apply_crosswalk
+from compound_shocks.crosswalk import (
+    apply_crosswalk,
+    build_name_index,
+    fill_missing_by_market,
+    load_name_map,
+)
 from compound_shocks.panel import aggregate_conflict, fuse_panel, publishable_aggregates
 from compound_shocks.schema import PANEL_COLUMNS, check_frame
 from compound_shocks.spatial import assign_admin2
+from compound_shocks.units import merge_units
 
 BASELINE_INSTANCE = "somalia"
 TEXT_COLUMNS = ("admin2_id", "month", "date", "admin2", "origin_admin2", "dest_admin2", "market", "commodity",
@@ -53,14 +60,32 @@ def _log(log: Path, step: str) -> None:
         stream.write(f"{step}\n")
 
 
-def _report(path: Path, warnings: list[str], stats: dict) -> None:
+def _report(path: Path, warnings: list[str], stats: dict, decisions: list[str] | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"warnings": warnings, "stats": stats}, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    body = {"decisions": decisions or [], "stats": stats, "warnings": warnings}
+    path.write_text(json.dumps(body, sort_keys=True, indent=2) + "\n", encoding="utf-8")
 
 
-def _read(role: str, provider: str, files: list[Path], target: Path, report: Path, boundaries_file: Path, log: Path) -> None:
-    instance = {"boundaries": gpd.read_file(boundaries_file)} if role == "rainfall" else {}
+def _read(
+    role: str,
+    provider: str,
+    files: list[Path],
+    target: Path,
+    report: Path,
+    boundaries_file: Path,
+    merges: list[dict],
+    period: dict,
+    log: Path,
+) -> None:
+    instance = {"period": period}
+    if role == "rainfall":
+        instance["boundaries"] = gpd.read_file(boundaries_file)
     frame = get_adapter(role, provider).read(files, instance)
+    decisions, stats = list(frame.attrs.get("decisions", [])), {f"rows_{role}": len(frame)}
+    if role == "admin_boundaries":
+        frame, merged = merge_units(frame, merges)
+        decisions += merged
+        stats["boundary_vintage"] = frame.attrs.get("vintage")
     fatal = check_frame(frame, role)
     if fatal:
         raise ValueError("; ".join(str(problem) for problem in fatal))
@@ -68,13 +93,21 @@ def _read(role: str, provider: str, files: list[Path], target: Path, report: Pat
         frame.to_file(target, driver="GeoJSON")
     else:
         frame.to_csv(target, index=False)
-    _report(report, [str(problem) for problem in frame.attrs.get("problems", [])], {f"rows_{role}": len(frame)})
+    _report(report, [str(problem) for problem in frame.attrs.get("problems", [])], stats, decisions)
     _log(log, f"read:{role}")
 
 
-def _spatial(events_file: Path, boundaries_file: Path, target: Path, log: Path) -> None:
-    assigned = assign_admin2(_csv(events_file), gpd.read_file(boundaries_file))
+def _spatial(events_file: Path, boundaries_file: Path, period: dict, target: Path, report: Path, log: Path) -> None:
+    events = _csv(events_file)
+    dates = pd.to_datetime(events["date"])
+    inside = (dates >= pd.Timestamp(period["start"])) & (dates <= pd.Timestamp(period["end"]))
+    outside = int((~inside).sum())
+    assigned = assign_admin2(events[inside].reset_index(drop=True), gpd.read_file(boundaries_file))
     assigned.to_csv(target, index=False)
+    decisions = (
+        [f"ACLED: {outside} events outside the study period {period['start']} to {period['end']} excluded"] if outside else []
+    )
+    _report(report, [], {"events_in_period": int(inside.sum()), "events_outside_period": outside}, decisions)
     _log(log, "spatial")
 
 
@@ -85,16 +118,28 @@ def _aggregate(assigned_file: Path, target: Path, report: Path, log: Path) -> No
     _log(log, "aggregate")
 
 
-def _fuse(derived: Path, months: list[str], target: Path, report: Path, log: Path) -> None:
+def _fuse(derived: Path, crosswalks: Path, months: list[str], target: Path, report: Path, log: Path) -> None:
     districts = gpd.read_file(derived / "admin_boundaries.geojson")
-    names = dict(zip(districts["name"].astype(str), districts["admin2_id"].astype(str), strict=True))
-    prices, price_problems = apply_crosswalk(_csv(derived / "prices.csv"), "admin2", names, "prices")
-    moves, origin_problems = apply_crosswalk(_csv(derived / "displacement.csv"), "origin_admin2", names, "displacement")
+    aliases = load_name_map(crosswalks / "district_names.yaml")
+    market_districts = load_name_map(crosswalks / "wfp_market_districts.yaml")
+    names, alias_problems = build_name_index(districts, aliases)
+    prices, filled = fill_missing_by_market(_csv(derived / "prices.csv"), market_districts)
+    moves = _csv(derived / "displacement.csv")
+    renamed = sum(int(frame[column].isin(list(aliases)).sum()) for frame, column in
+                  ((prices, "admin2"), (moves, "origin_admin2"), (moves, "dest_admin2")))
+    decisions = []
+    if aliases:
+        decisions.append(f"crosswalks/district_names.yaml: {renamed} provider district names renamed through {len(aliases)} aliases")
+    if filled:
+        decisions.append(f"crosswalks/wfp_market_districts.yaml: district filled from the market for {filled} price rows")
+    prices, price_problems = apply_crosswalk(prices, "admin2", names, "prices")
+    moves, origin_problems = apply_crosswalk(moves, "origin_admin2", names, "displacement")
     moves, dest_problems = apply_crosswalk(moves, "dest_admin2", names, "displacement")
     panel = fuse_panel(_csv(derived / "conflict_monthly.csv"), _csv(derived / "rainfall.csv"), prices, moves,
                        sorted(districts["admin2_id"].astype(str)), months)
     panel.to_csv(target, index=False)
-    _report(report, [str(p) for p in price_problems + origin_problems + dest_problems], {"panel_rows": len(panel)})
+    problems = alias_problems + price_problems + origin_problems + dest_problems
+    _report(report, [str(p) for p in problems], {"panel_rows": len(panel)}, decisions)
     _log(log, "fuse")
 
 
@@ -110,13 +155,16 @@ def _outputs(instance_dir: Path, config_file: Path, root: Path, log: Path) -> No
     manifest["panel_columns"] = {
         kind: sorted(name for name, k in PANEL_COLUMNS.items() if k == kind) for kind in ("core", "extension")
     }
+    instance_files = [config_file, *sorted((instance_dir / "crosswalks").glob("*.yaml"))]
+    manifest["instance_files"] = {path.relative_to(instance_dir).as_posix(): hash_file(path) for path in instance_files}
     write_manifest(manifest, outputs / "manifest.json")
-    warnings, stats = [], {}
+    warnings, stats, decisions = [], {}, []
     for part in sorted((derived / "reports").glob("*.json")):
         loaded = json.loads(part.read_text(encoding="utf-8"))
         warnings += [f"{part.stem}: {warning}" for warning in loaded["warnings"]]
+        decisions += loaded["decisions"]
         stats.update(loaded["stats"])
-    _report(outputs / "run_report.json", warnings, stats)
+    _report(outputs / "run_report.json", warnings, stats, decisions)
     _log(log, "outputs")
 
 
@@ -130,6 +178,8 @@ def tasks(instance_dir: Path, config: dict, role_files: dict[str, list[Path]], r
     log, config_file = derived / "ran.log", instance_dir / "config.yaml"
     reports = derived / "reports"
     boundaries_file = derived / "admin_boundaries.geojson"
+    merges = config["parameters"].get("merge_districts", [])
+    crosswalk_files = [str(path) for path in sorted((instance_dir / "crosswalks").glob("*.yaml"))]
     months = months_between(config["period"]["start"], config["period"]["end"])
     steps = []
     for role, files in role_files.items():
@@ -140,14 +190,14 @@ def tasks(instance_dir: Path, config: dict, role_files: dict[str, list[Path]], r
             "name": f"read:{role}",
             "file_dep": [str(path) for path in files] + extra + [str(config_file)],
             "targets": [str(target), str(report)],
-            "actions": [(_read, [role, config["sources"][role]["provider"], files, target, report, boundaries_file, log])],
+            "actions": [(_read, [role, config["sources"][role]["provider"], files, target, report, boundaries_file, merges, config["period"], log])],
         })
     events, assigned, conflict = derived / "conflict_events.csv", derived / "events_assigned.csv", derived / "conflict_monthly.csv"
     steps.append({
         "name": "spatial",
-        "file_dep": [str(events), str(boundaries_file)],
-        "targets": [str(assigned)],
-        "actions": [(_spatial, [events, boundaries_file, assigned, log])],
+        "file_dep": [str(events), str(boundaries_file), str(config_file)],
+        "targets": [str(assigned), str(reports / "spatial.json")],
+        "actions": [(_spatial, [events, boundaries_file, config["period"], assigned, reports / "spatial.json", log])],
     })
     steps.append({
         "name": "aggregate",
@@ -159,15 +209,15 @@ def tasks(instance_dir: Path, config: dict, role_files: dict[str, list[Path]], r
     panel = derived / "panel.csv"
     steps.append({
         "name": "fuse",
-        "file_dep": [str(path) for path in inputs] + [str(config_file)],
+        "file_dep": [str(path) for path in inputs] + [str(config_file)] + crosswalk_files,
         "targets": [str(panel), str(reports / "fuse.json")],
-        "actions": [(_fuse, [derived, months, panel, reports / "fuse.json", log])],
+        "actions": [(_fuse, [derived, instance_dir / "crosswalks", months, panel, reports / "fuse.json", log])],
     })
     outputs = instance_dir / "outputs"
     raw_inputs = [str(path) for files in role_files.values() for path in files]
     steps.append({
         "name": "outputs",
-        "file_dep": [str(panel), str(reports / "fuse.json"), str(config_file)] + raw_inputs,
+        "file_dep": [str(panel), str(reports / "fuse.json"), str(config_file)] + crosswalk_files + raw_inputs,
         "targets": [str(outputs / name) for name in ("publishable_aggregates.csv", "manifest.json", "run_report.json")],
         "actions": [(_outputs, [instance_dir, config_file, root, log])],
     })

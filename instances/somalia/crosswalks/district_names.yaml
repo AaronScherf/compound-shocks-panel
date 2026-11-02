@@ -1,0 +1,7 @@
+# Provider district name -> COD-AB v03 district name. Each pair is the same place under a different spelling
+# (checked 2026-11-02 against the real PRMN and WFP files). Names not listed here and not matching COD-AB
+# exactly are left unassigned and reported in outputs/run_report.json (Badhan and Dhahar, Sanaag, are not
+# in COD-AB v03).
+Baidoa: Baydhaba
+Kismayo: Kismaayo
+Lasqoray: Laasqoray

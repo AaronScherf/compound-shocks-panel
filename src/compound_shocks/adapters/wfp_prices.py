@@ -21,8 +21,14 @@ class WfpPricesAdapter:
 
     def read(self, paths: list[Path], instance: dict) -> pd.DataFrame:
         frames, mixed_types = [], []
+        period, dropped = instance.get("period"), 0
         for path in paths:
             raw = pd.read_csv(path, encoding="utf-8-sig")
+            if period:  # checks below should speak about the study period, not 30 years of history
+                dates = pd.to_datetime(raw["date"])
+                inside = (dates >= pd.Timestamp(period["start"])) & (dates <= pd.Timestamp(period["end"]))
+                dropped += int((~inside).sum())
+                raw = raw[inside]
             renamed, problems = apply_mapping(raw, load_mapping(MAPPING))
             if problems:
                 raise ValueError(f"{path.name}: " + "; ".join(map(str, problems)))
@@ -43,6 +49,11 @@ class WfpPricesAdapter:
                     problems.append(Problem("prices", f"{market}/{commodity}/{field}",
                                             f"mixed {field}: {', '.join(values)}"))
         result.attrs["problems"] = problems
+        result.attrs["decisions"] = (
+            [f"WFP: dropped {dropped} price rows outside the study period {period['start']} to {period['end']}"]
+            if dropped
+            else []
+        )
         return result
 
 
