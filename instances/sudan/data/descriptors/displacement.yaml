@@ -1,0 +1,24 @@
+schema_version: 0.1.0
+role: displacement
+provider: IOM DTM
+title: Sudan IOM DTM data for admin levels 0-2
+query: HDX dataset sdn-iom-dtm-from-api, resource "Sudan IOM DTM data for admin levels 0-2" (CSV, 65,372 rows); no key needed. The per-round XLSX resources on sudan-displacement-situation-idps-iom-dtm have differing layouts and are not used. Download date and sha256 are in the `.fetch.json` sidecar.
+coverage_space: Sudan, localities (Admin 2) as destination, states (Admin 1) as origin
+coverage_time: '2010-06/2026-08 in the file; 2021-01/2024-12 used (30,869 locality rows: 238 in 2021, 290 in 2022, 8,318 in 2023, 22,023 in 2024)'
+variables:
+  - name: admin2Name
+    meaning: Locality where displaced people are present (matches COD-AB names exactly)
+    unit: text
+  - name: idpOriginAdmin1Pcode
+    meaning: State of origin
+    unit: code
+  - name: numPresentIdpInd
+    meaning: Displaced people present at the assessment date (a stock)
+    unit: persons
+  - name: reportingDate
+    meaning: Assessment date, reduced to the last report in each month
+    unit: date
+access_class: open
+reuse_terms: CC BY 4.0 / IOM data protection principles (as described in the Gemini portability note; confirm on the HDX page).
+verification_status: run on acquired data
+find_in_other_geography: Monthly district-level displacement; DTM is the usual source where PRMN does not exist, and it records stocks, not flows.

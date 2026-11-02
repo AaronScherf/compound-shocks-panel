@@ -1,0 +1,18 @@
+schema_version: 0.1.0
+role: rainfall
+provider: UCSB CHC CHIRPS
+title: CHIRPS v2.0 monthly precipitation, Africa
+query: Same product as the Somalia descriptor; 48 monthly files (2021-01 to 2024-12) fetched by `compound-shocks fetch --instance sudan --role rainfall`. Download dates and sha256 are in the `.fetch.json` sidecars.
+coverage_space: Africa (0.05 degree grid), reduced to Sudan localities
+coverage_time: '1981-01/present; 2021-01/2024-12 used'
+variables:
+  - name: precip_mm
+    meaning: Area-weighted mean monthly precipitation over the locality's valid cells
+    unit: mm
+  - name: coverage_frac
+    meaning: Share of the locality's area covered by valid cells
+    unit: fraction
+access_class: open
+reuse_terms: CHIRPS data are public; confirm the citation and terms on the CHC page.
+verification_status: run on acquired data
+find_in_other_geography: The same CHIRPS v2.0 Africa monthly product covers any African country.

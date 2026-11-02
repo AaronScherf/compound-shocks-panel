@@ -51,12 +51,7 @@ def _reproduce(instance: str, root: Path) -> int:
     return int(bool(DoitMain(ModuleTaskLoader(namespace)).run(["run"])))
 
 
-# role -> (provider, what is fetched). The dataset IDs pinned in compound_shocks.fetch are Somalia's.
-PINNED = {
-    "prices": ("WFP", f"HDX {hdx.WFP_DATASET} / {hdx.WFP_RESOURCE}"),
-    "displacement": ("UNHCR/NRC PRMN", f"HDX {hdx.PRMN_DATASET} / {hdx.PRMN_RESOURCE}"),
-    "admin_boundaries": ("OCHA COD-AB", f"HDX {hdx.CODAB_DATASET} / {hdx.CODAB_RESOURCE} (Admin 2 layer)"),
-}
+FETCHERS = {"prices": hdx.fetch_wfp_prices, "displacement": hdx.fetch_displacement, "admin_boundaries": hdx.fetch_codab}
 CHIRPS_PROVIDER = "UCSB CHC CHIRPS"
 
 
@@ -68,7 +63,7 @@ def _fetch(instance: str, root: Path, dry_run: bool, roles: list[str] | None = N
     config, _ = load_yaml(instance_dir / "config.yaml")
     raw = instance_dir / "data" / "raw"
     months = months_between(config["period"]["start"], config["period"]["end"])
-    fetchers = {"prices": hdx.fetch_wfp_prices, "displacement": hdx.fetch_prmn, "admin_boundaries": hdx.fetch_codab}
+    pinned = hdx.SOURCES.get(instance, {})
     unknown = sorted(set(roles or []) - set(config["sources"]))
     if unknown:
         print(Problem(str(instance_dir), "roles", f"unknown role(s): {', '.join(unknown)}"))
@@ -83,8 +78,10 @@ def _fetch(instance: str, root: Path, dry_run: bool, roles: list[str] | None = N
         elif role == "rainfall" and provider == CHIRPS_PROVIDER:
             downloads.append((f"{role}: CHIRPS v2.0, {len(months)} monthly files, e.g. {chirps_url(months[0])}",
                               lambda role=role: fetch_chirps(months, raw / role)))
-        elif role in PINNED and provider == PINNED[role][0]:
-            downloads.append((f"{role}: {PINNED[role][1]}", lambda role=role: fetchers[role](raw / role)))
+        elif role in pinned and provider == pinned[role][0]:
+            _, dataset, resource, _ = pinned[role]
+            downloads.append((f"{role}: HDX {dataset} / {resource}",
+                              lambda role=role: FETCHERS[role](raw / role, geography=instance)))
         else:
             print(Problem(str(instance_dir), role, f"no pinned fetcher for provider {provider!r}; download it by hand"))
             return 1

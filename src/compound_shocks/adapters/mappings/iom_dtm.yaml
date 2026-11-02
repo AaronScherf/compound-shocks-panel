@@ -1,0 +1,7 @@
+# IOM DTM Sudan CSV columns, checked against the real file 2026-11-02 (HDX sdn-iom-dtm-from-api).
+reportingDate: date
+admin2Name: dest_admin2
+idpOriginAdmin1Pcode: origin_admin1
+numPresentIdpInd: stock
+operation: operation
+adminLevel: admin_level

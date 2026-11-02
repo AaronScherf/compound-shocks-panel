@@ -9,7 +9,7 @@ import geopandas as gpd
 import pandas as pd
 import yaml
 
-from compound_shocks.eda import data_profile
+from compound_shocks.eda import SOURCE_GROUPS, data_profile, missingness_vs_conflict
 from compound_shocks.figures import (
     make_district_audit_map,
     missingness_matrix,
@@ -78,7 +78,8 @@ def _coverage(panel: pd.DataFrame, run_report: dict, boundaries: gpd.GeoDataFram
     by_district = panel.groupby("admin2_id")
     no_price = sorted(by_district["price_sorghum"].apply(lambda s: s.isna().all()).loc[lambda s: s].index.astype(str))
     price_share = profile["groups"]["prices"]["non_null"] / rows
-    moves = panel.groupby("month")["displaced_individuals"].apply(lambda s: s.notna().any())
+    displacement_columns = [c for c in SOURCE_GROUPS["displacement"] if c in panel.columns]
+    moves = panel[displacement_columns].notna().any(axis=1).groupby(panel["month"]).any()
     silent_months = sorted(moves.loc[~moves].index)
     lines = [
         f"- The panel has {rows} rows: {profile['districts']} districts by {profile['months']} months.",
@@ -95,6 +96,31 @@ def _coverage(panel: pd.DataFrame, run_report: dict, boundaries: gpd.GeoDataFram
     if no_price:
         lines.append(f"\nDistricts with no price observation: {_names(boundaries, no_price)}.")
     return "\n".join(lines)
+
+
+def _missingness_vs_conflict(panel: pd.DataFrame) -> str:
+    result = missingness_vs_conflict(panel, "price_sorghum")
+    cut = result["district_cut"]
+    header = ["Group", "District-months", "Mean events", "Share with any event", "Mean fatalities"]
+
+    def row(label: str, stats: dict) -> list:
+        return [label, stats["district_months"], stats["mean_events"], stats["share_with_events"], stats["mean_fatalities"]]
+
+    districts = _table(header, [row("Districts that ever have a sorghum price", cut["ever_has_value"]),
+                                row("Districts that never do", cut["never_has_value"])])
+    months = _table(header, [row("Months with a price (market districts only)", result["month_cut"]["with_value"]),
+                             row("Months without (market districts only)", result["month_cut"]["without_value"])])
+    years = _table(
+        ["Year", "Share of months with a price", "Mean events with price", "Mean events without"],
+        [[y["year"], y["share_observed"], y["with_value"]["mean_events"], y["without_value"]["mean_events"]]
+         for y in result["by_year"]],
+    )
+    return "\n\n".join([
+        (f"{result['districts_ever']['with_value']} districts ever have a sorghum price and "
+        f"{result['districts_ever']['without_value']} never do. The tables compare conflict counts across those groups. "
+        "They are descriptive: no test is run, and differences may reflect where markets are placed."),
+        "Between districts:", districts, "Within districts that have a market, by month:", months, "By year:", years,
+    ])
 
 
 def _acled_answers(descriptors: dict, raw_dir: Path) -> str:
@@ -213,6 +239,8 @@ def build_audit_memo(instance_dir: Path) -> Path:
         _provenance(manifest, config, descriptors, raw_dir, run_report["stats"].get("boundary_vintage")),
         "## Coverage and missingness",
         _coverage(panel, run_report, boundaries),
+        "## Price gaps and conflict",
+        _missingness_vs_conflict(panel),
         "## Figures",
         _figures(outputs),
         "## ACLED: access, filters and manipulation",

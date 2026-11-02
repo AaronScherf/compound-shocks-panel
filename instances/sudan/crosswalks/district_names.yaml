@@ -1,0 +1,17 @@
+# WFP district name -> COD-AB v03 locality name. WFP's admin2 column uses its own spellings for 14 of its 18 market
+# districts. Each pair was set by locating the market's coordinates (WFP wfp_prices_sdn.csv latitude and longitude)
+# inside the COD-AB locality polygon, 2026-11-02. IOM DTM already uses COD-AB locality names and needs no entries.
+Al Gedaref Rural: Madeinat Al Gedaref
+Damazin: Ed Damazine
+Ed Daein: Ad Du'ayn
+El Fasher: Al Fasher
+El Geneina: Ag Geneina
+El Salam: As Salam - WK
+Eldamar: Ad Damar
+Jebal Aulya: Jebel Awlia
+Kassala: Madeinat Kassala
+Shiekan: Sheikan
+Sinjja: Sinja
+Wad Madani El Kobra: Medani Al Kubra
+Zalingei: Zalingi
+Nyala: Nyala Janoub

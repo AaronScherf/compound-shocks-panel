@@ -33,26 +33,58 @@ def fetch_hdx(
                       source=f"HDX {dataset_id}", name=filename or resource_name)
 
 
-def fetch_wfp_prices(out_dir: Path, **kwargs) -> Path:
-    return fetch_hdx(WFP_DATASET, WFP_RESOURCE, out_dir, filename="wfp_prices_somalia.csv", **kwargs)
+# Sudan: the WFP file has 22,698 rows (2001 to 2026). IOM DTM publishes stocks of IDPs per locality, not flows;
+# the API-derived CSV is one tidy file for admin levels 0 to 2 (the per-round XLSX resources have differing layouts).
+SUDAN_WFP = ("wfp-food-prices-for-sudan", "Sudan - Food Prices")
+SUDAN_DTM = ("sdn-iom-dtm-from-api", "Sudan IOM DTM data for admin levels 0-2")
+SUDAN_CODAB = ("cod-ab-sdn", "sdn_admin_boundaries.geojson.zip")
+
+# instance name -> role -> (provider, dataset, resource, saved filename); the CLI reads this to fetch an instance
+SOURCES: dict[str, dict[str, tuple[str, str, str, str]]] = {
+    "somalia": {
+        "prices": ("WFP", WFP_DATASET, WFP_RESOURCE, "wfp_prices_somalia.csv"),
+        "displacement": ("UNHCR/NRC PRMN", PRMN_DATASET, PRMN_RESOURCE, "prmn_displacement.xlsx"),
+        "admin_boundaries": ("OCHA COD-AB", CODAB_DATASET, CODAB_RESOURCE, ""),
+    },
+    "sudan": {
+        "prices": ("WFP", *SUDAN_WFP, "wfp_prices_sudan.csv"),
+        "displacement": ("IOM DTM", *SUDAN_DTM, "iom_dtm_admin0-2.csv"),
+        "admin_boundaries": ("OCHA COD-AB", *SUDAN_CODAB, ""),
+    },
+}
+
+
+def fetch_wfp_prices(out_dir: Path, geography: str = "somalia", **kwargs) -> Path:
+    _, dataset, resource, name = SOURCES[geography]["prices"]
+    return fetch_hdx(dataset, resource, out_dir, filename=name, **kwargs)
+
+
+def fetch_displacement(out_dir: Path, geography: str, **kwargs) -> Path:
+    _, dataset, resource, name = SOURCES[geography]["displacement"]
+    return fetch_hdx(dataset, resource, out_dir, filename=name, **kwargs)
 
 
 def fetch_prmn(out_dir: Path, **kwargs) -> Path:
-    return fetch_hdx(PRMN_DATASET, PRMN_RESOURCE, out_dir, filename="prmn_displacement.xlsx", **kwargs)
+    return fetch_displacement(out_dir, "somalia", **kwargs)
 
 
-def fetch_codab(out_dir: Path, **kwargs) -> Path:
+def fetch_dtm(out_dir: Path, **kwargs) -> Path:
+    return fetch_displacement(out_dir, "sudan", **kwargs)
+
+
+def fetch_codab(out_dir: Path, geography: str = "somalia", **kwargs) -> Path:
     """Download the COD-AB GeoJSON zip and keep only its Admin 2 layer; member names are checked, not assumed."""
     out_dir = Path(out_dir)
-    archive_path = fetch_hdx(CODAB_DATASET, CODAB_RESOURCE, out_dir, **kwargs)
+    _, dataset, resource, _ = SOURCES[geography]["admin_boundaries"]
+    archive_path = fetch_hdx(dataset, resource, out_dir, **kwargs)
     with zipfile.ZipFile(io.BytesIO(archive_path.read_bytes())) as archive:
         members = [name for name in archive.namelist() if name.lower().endswith(".geojson")]
         admin2 = [name for name in members if "admin2" in name.lower()]
         if len(admin2) > 1:  # OCHA ships a standard layer and an edge-matched (_em) copy; use the standard one
             admin2 = [name for name in admin2 if not name.lower().endswith("_em.geojson")]
         if len(admin2) != 1:
-            raise FetchError(f"HDX {CODAB_DATASET}: expected one admin2 GeoJSON in the zip, found {admin2 or members}")
+            raise FetchError(f"HDX {dataset}: expected one admin2 GeoJSON in the zip, found {admin2 or members}")
         data = archive.read(admin2[0])
     archive_path.unlink()
     archive_path.with_name(archive_path.name + ".fetch.json").unlink()
-    return save(data, f"HDX {CODAB_DATASET} / {CODAB_RESOURCE} / {admin2[0]}", out_dir, Path(admin2[0]).name)
+    return save(data, f"HDX {dataset} / {resource} / {admin2[0]}", out_dir, Path(admin2[0]).name)

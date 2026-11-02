@@ -98,3 +98,13 @@ def test_column_kinds_copy_panel_columns():
 def test_publishable_aggregates_has_no_coordinates_ids_actors_or_event_types():
     out = publishable_aggregates(build([("D1", "2021-01-02", 2)]))
     assert list(out.columns) == ["admin2_id", "month", "events", "fatalities"]
+
+
+def test_food_aid_sorghum_is_not_a_market_price():
+    from compound_shocks.panel import _monthly_price
+
+    prices = pd.DataFrame({
+        "date": ["2021-01-15"] * 3, "admin2": ["A"] * 3, "commodity": ["Sorghum", "Sorghum (food aid)", "Sorghum (white)"],
+        "price": [10.0, 2.0, 20.0],
+    })
+    assert _monthly_price(prices, "sorghum", "price_sorghum")["price_sorghum"].tolist() == [15.0]

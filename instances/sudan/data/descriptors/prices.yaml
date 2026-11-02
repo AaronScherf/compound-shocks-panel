@@ -1,0 +1,36 @@
+schema_version: 0.1.0
+role: prices
+provider: WFP
+title: Sudan - Food Prices (WFP)
+query: HDX dataset wfp-food-prices-for-sudan, resource "Sudan - Food Prices" (CSV), fetched by `compound-shocks fetch --instance sudan --role prices`. No key needed; no HXL tag row. Download date and sha256 are in the `.fetch.json` sidecar.
+coverage_space: Sudan; 18 markets in 18 localities of 189 (about 10%)
+coverage_time: '2001-01/2026-09 in the file; 2021-01/2024-12 used (7,147 rows: 6,829 retail, 318 wholesale)'
+variables:
+  - name: date
+    meaning: Month of the price observation
+    unit: date
+  - name: admin2
+    meaning: WFP district name, mapped to a COD-AB locality through crosswalks/district_names.yaml
+    unit: text
+  - name: market
+    meaning: Market name
+    unit: text
+  - name: commodity
+    meaning: Commodity name; sorghum and wheat variants feed the panel, food-aid sorghum is excluded
+    unit: text
+  - name: unit
+    meaning: Unit of sale
+    unit: text
+  - name: currency
+    meaning: Currency (SDG only)
+    unit: text
+  - name: price
+    meaning: Nominal price in Sudanese pounds (usdprice is not used)
+    unit: currency per unit
+access_class: open
+reuse_terms: CC BY-IGO (as listed on HDX).
+verification_status: run on acquired data
+find_in_other_geography: Monthly market prices for wheat or wheat flour, cooking oil, sorghum and maize with unit and currency, from WFP VAM.
+accessed: '2026-11-02'
+applied_filters: Study period 2021-01 to 2024-12. Retail and wholesale rows are both present; the adapter reports the mix.
+manipulation: Rows outside the study period dropped; district names mapped to COD-AB by market coordinates; panel price is the mean over markets of matching commodities, excluding food aid. See protocol.md decision log.

@@ -1,0 +1,15 @@
+schema_version: 0.1.0
+role: conflict_events
+provider: ACLED
+title: ACLED event data export (Research Tier, myACLED account)
+query: Manual export from acleddata.com for Sudan, from 1997-01-01. Not yet downloaded.
+coverage_space: Sudan
+coverage_time: 'not yet downloaded'
+variables: []
+access_class: account_required
+reuse_terms: ACLED EULA (8 July 2025) and Attribution Policy; raw rows must not be redistributed; aggregates and figures may be, with citation.
+verification_status: proposed
+find_in_other_geography: Event-level political violence data with point coordinates, event type and fatalities, from ACLED.
+accessed: '2026-11-02'
+applied_filters: Sudan, to be set when the export is made.
+manipulation: none yet. Planned - the same steps as Somalia (repeated actor rows collapsed, point-in-polygon to COD-AB Admin 2, district-month totals).

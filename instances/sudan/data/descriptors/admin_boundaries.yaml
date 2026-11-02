@@ -1,0 +1,18 @@
+schema_version: 0.1.0
+role: admin_boundaries
+provider: OCHA COD-AB
+title: Sudan - Subnational Administrative Boundaries (COD-AB)
+query: HDX dataset cod-ab-sdn, resource sdn_admin_boundaries.geojson.zip, member sdn_admin2.geojson; no key needed. Download date and sha256 are in the `.fetch.json` sidecar.
+coverage_space: Sudan, 189 Admin 2 localities
+coverage_time: 'Version v03, valid on 2020-08-31'
+variables:
+  - name: adm2_pcode
+    meaning: Admin 2 place code, used as admin2_id (state codes follow COD-AB v03, for example SD01 is Khartoum)
+    unit: code
+  - name: adm2_name
+    meaning: Admin 2 locality name
+    unit: text
+access_class: open
+reuse_terms: CC BY-IGO (as listed on HDX).
+verification_status: run on acquired data
+find_in_other_geography: OCHA COD-AB for the country (dataset cod-ab-<iso3> on HDX).

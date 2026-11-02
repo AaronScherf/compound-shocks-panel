@@ -19,7 +19,14 @@ from reprokit.manifest import (
 from reprokit.problems import Problem
 from reprokit.validate import validate_document
 
-from compound_shocks.adapters import acled, boundaries, chirps, prmn, wfp_prices  # noqa: F401  (register adapters)
+from compound_shocks.adapters import (  # noqa: F401  (register adapters)
+    acled,
+    boundaries,
+    chirps,
+    iom_dtm,
+    prmn,
+    wfp_prices,
+)
 from compound_shocks.adapters.base import get_adapter
 from compound_shocks.audit_memo import build_audit_memo
 from compound_shocks.crosswalk import (
@@ -35,7 +42,7 @@ from compound_shocks.units import merge_units
 
 BASELINE_INSTANCE = "somalia"
 TEXT_COLUMNS = ("admin2_id", "month", "date", "admin2", "origin_admin2", "dest_admin2", "market", "commodity",
-                "unit", "currency", "reason", "event_id")
+                "unit", "currency", "reason", "event_id", "origin_admin1")
 
 
 def check_instance_gate(root: Path, instance_dir: Path) -> list[Problem]:
@@ -103,7 +110,7 @@ def _read(
         frame, merged = merge_units(frame, merges)
         decisions += merged
         stats["boundary_vintage"] = frame.attrs.get("vintage")
-    fatal = check_frame(frame, role)
+    fatal = check_frame(frame, frame.attrs.get("schema", role))
     if fatal:
         raise ValueError("; ".join(str(problem) for problem in fatal))
     if role == "admin_boundaries":
@@ -142,15 +149,19 @@ def _fuse(derived: Path, crosswalks: Path, months: list[str], target: Path, repo
     names, alias_problems = build_name_index(districts, aliases)
     prices, filled = fill_missing_by_market(_csv(derived / "prices.csv"), market_districts)
     moves = _csv(derived / "displacement.csv")
+    stock = "stock" in moves.columns
+    place_columns = ["dest_admin2"] if stock else ["origin_admin2", "dest_admin2"]
     renamed = sum(int(frame[column].isin(list(aliases)).sum()) for frame, column in
-                  ((prices, "admin2"), (moves, "origin_admin2"), (moves, "dest_admin2")))
+                  [(prices, "admin2"), *[(moves, c) for c in place_columns]])
     decisions = []
     if aliases:
         decisions.append(f"crosswalks/district_names.yaml: {renamed} provider district names renamed through {len(aliases)} aliases")
     if filled:
         decisions.append(f"crosswalks/wfp_market_districts.yaml: district filled from the market for {filled} price rows")
     prices, price_problems = apply_crosswalk(prices, "admin2", names, "prices")
-    moves, origin_problems = apply_crosswalk(moves, "origin_admin2", names, "displacement")
+    origin_problems = []
+    if not stock:
+        moves, origin_problems = apply_crosswalk(moves, "origin_admin2", names, "displacement")
     moves, dest_problems = apply_crosswalk(moves, "dest_admin2", names, "displacement")
     panel = fuse_panel(_csv(derived / "conflict_monthly.csv"), _csv(derived / "rainfall.csv"), prices, moves,
                        sorted(districts["admin2_id"].astype(str)), months)

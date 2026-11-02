@@ -22,15 +22,22 @@ _SPEC: dict[str, dict[str, str]] = {
     "admin_boundaries": {"admin2_id": "text", "name": "text", "geometry": "geometry"},
 }
 
+# A provider that reports stocks (people present) instead of flows (people moving) fills this table; the config
+# role is still "displacement". Adapters name it in df.attrs["schema"].
+STOCK_SPEC: dict[str, str] = {"month": "text", "dest_admin2": "text", "origin_admin1": "text", "stock": "number"}
+_SCHEMAS = {**_SPEC, "displacement_stock": STOCK_SPEC}
+
 KEYS: dict[str, list[str]] = {
     "conflict_events": ["event_id"],
     "displacement": ["month", "origin_admin2", "dest_admin2", "reason"],
     "prices": ["date", "market", "commodity", "unit"],
     "rainfall": ["admin2_id", "month"],
     "admin_boundaries": ["admin2_id"],
+    "displacement_stock": ["month", "dest_admin2", "origin_admin1"],
 }
 
 ROLE_COLUMNS: dict[str, list[str]] = {role: list(cols) for role, cols in _SPEC.items()}
+STOCK_COLUMNS: list[str] = list(STOCK_SPEC)
 
 PANEL_COLUMNS: dict[str, Literal["core", "extension"]] = {
     "events": "core",
@@ -40,6 +47,8 @@ PANEL_COLUMNS: dict[str, Literal["core", "extension"]] = {
     "price_sorghum": "core",
     "price_wheat": "core",
     "displaced_individuals": "extension",
+    "displaced_stock": "extension",
+    "displaced_stock_change": "extension",
     "price_goat": "extension",
     "wage_labor": "extension",
     "tot_goat_sorghum": "extension",
@@ -58,9 +67,9 @@ def _kind_ok(series: pd.Series, kind: str) -> bool:
 
 
 def check_frame(df: pd.DataFrame, role: str) -> list[Problem]:
-    if role not in _SPEC:
-        raise KeyError(f"unknown role {role!r}; roles: {', '.join(sorted(_SPEC))}")
-    spec = _SPEC[role]
+    if role not in _SCHEMAS:
+        raise KeyError(f"unknown role {role!r}; roles: {', '.join(sorted(_SCHEMAS))}")
+    spec = _SCHEMAS[role]
     where = f"table:{role}"
     problems = [Problem(where, col, "missing column") for col in spec if col not in df.columns]
     problems += [Problem(where, col, "unexpected column") for col in df.columns if col not in spec]

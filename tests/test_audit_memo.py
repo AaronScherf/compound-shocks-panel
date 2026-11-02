@@ -90,3 +90,8 @@ def test_project_charter_lists_the_audit_memo_deliverable():
     charter = yaml.safe_load((Path(FIXTURES).parents[1] / "project.yaml").read_text(encoding="utf-8"))
     memo = next(d for d in charter["deliverables"] if d["id"] == "data-audit-memo")
     assert memo["format"] == "markdown" and "reproduce" in memo["build"]
+
+
+def test_memo_compares_conflict_where_prices_are_present_and_missing(memo_root):
+    text = memo_text(memo_root)
+    assert "## Price gaps and conflict" in text and "Districts that never do" in text and "no test is run" in text

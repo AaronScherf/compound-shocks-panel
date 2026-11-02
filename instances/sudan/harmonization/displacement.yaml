@@ -1,0 +1,22 @@
+schema_version: 0.1.0
+role: displacement
+from_source: UNHCR/NRC PRMN
+to_source: IOM DTM
+differences: >-
+  PRMN (Somalia) records monthly flows of people from an origin district to a destination district, with a reason.
+  IOM DTM (Sudan) records stocks: the number of displaced people present in a locality at each assessment round,
+  split by state of origin. 99.5% of locality rows in the study window are coded "Conflict". DTM has few reports
+  before the April 2023 war (238 locality rows in 2021, 290 in 2022) and 22,023 in 2024. Origin is a state (Admin 1),
+  not a locality. Several DTM series overlap, with different numbers for the same locality and day.
+decision: >-
+  Keep the stock as its own panel columns (displaced_stock, displaced_stock_change) and do not fill
+  displaced_individuals, so a stock is never read as a flow. Per locality, state of origin and month, use the last
+  report in the month, prefer the Overview series, then Monthly, then the original series, and add up reason rows.
+  The change is the difference from the previous calendar month and is missing when that month has no report.
+rationale: >-
+  A change in a stock mixes new arrivals with departures, returns and re-counts, so it is a proxy, not a flow. Leaving
+  gaps missing keeps pre-war months from looking like zero displacement. The Somalia flow columns and the Sudan stock
+  columns are therefore not comparable; cross-country work uses the core columns only.
+affected_outputs: [panel, publishable_aggregates, audit_memo]
+approved_by: Draft by Claude 2026-11-02, awaiting approval by Aaron Scherf
+date: '2026-11-02'

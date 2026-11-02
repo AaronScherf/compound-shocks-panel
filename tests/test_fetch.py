@@ -249,3 +249,15 @@ def test_cli_fetch_unpinned_provider_stops_with_exit_1(root, web, capsys):
     web({})
     assert main(["fetch", "--instance", "somalia", "--root", str(root)]) == 1
     assert "FSNAU" in capsys.readouterr().out
+
+
+def test_cli_fetch_sudan_lists_the_sudan_datasets(root, capsys):
+    from conftest import make_instance
+
+    make_instance(root, "sudan")
+    config = root / "instances/sudan/config.yaml"
+    config.write_text(config.read_text(encoding="utf-8").replace("UNHCR/NRC PRMN", "IOM DTM"), encoding="utf-8")
+    assert main(["fetch", "--instance", "sudan", "--root", str(root), "--dry-run"]) == 0
+    out = capsys.readouterr().out
+    assert "wfp-food-prices-for-sudan" in out and "sdn-iom-dtm-from-api" in out and "cod-ab-sdn" in out
+    assert "somalia" not in out.lower()

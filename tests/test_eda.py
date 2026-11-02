@@ -8,6 +8,7 @@ from compound_shocks.eda import (
     data_profile,
     district_summary,
 )
+from compound_shocks.schema import PANEL_COLUMNS
 
 NAN = np.nan
 
@@ -52,8 +53,9 @@ def test_profile_reports_month_range_of_observed_values():
 
 def test_every_non_key_panel_column_belongs_to_one_source_group():
     grouped = [column for columns in SOURCE_GROUPS.values() for column in columns]
-    assert sorted(grouped) == sorted(set(make_panel().columns) - {"admin2_id", "month"})
+    assert set(make_panel().columns) - {"admin2_id", "month"} <= set(grouped)
     assert len(grouped) == len(set(grouped))
+    assert set(grouped) - {"displaced_stock", "displaced_stock_change"} <= set(PANEL_COLUMNS)
 
 
 def test_profile_rejects_a_panel_missing_key_columns():
@@ -67,3 +69,22 @@ def test_district_summary_sums_conflict_columns_and_gives_coverage_share_otherwi
     assert events["D1"] == 4 and events["D2"] == 0 and CONFLICT_COLUMNS >= {"events", "fatalities"}
     price = district_summary(panel, "price_sorghum")
     assert price["D1"] == pytest.approx(1 / 3) and price["D3"] == 0
+
+
+def test_missingness_vs_conflict_separates_districts_and_months():
+    from compound_shocks.eda import missingness_vs_conflict
+
+    panel = pd.DataFrame({
+        "admin2_id": ["A"] * 4 + ["B"] * 2,
+        "month": ["2021-01", "2021-02", "2022-01", "2022-02", "2021-01", "2021-02"],
+        "events": [5, 0, 0, 3, 9, 9], "fatalities": [1, 0, 0, 0, 4, 4],
+        "price_sorghum": [10.0, np.nan, 12.0, np.nan, np.nan, np.nan],
+    })
+    result = missingness_vs_conflict(panel)
+    assert result["districts_ever"] == {"with_value": 1, "without_value": 1}
+    assert result["district_cut"]["never_has_value"]["mean_events"] == 9
+    assert result["month_cut"]["with_value"]["mean_events"] == 2.5 and result["month_cut"]["without_value"]["mean_events"] == 1.5
+    assert [y["year"] for y in result["by_year"]] == ["2021", "2022"]
+    assert result["by_year"][0]["share_observed"] == 0.5
+    with pytest.raises(ValueError, match="unknown panel column"):
+        missingness_vs_conflict(panel, "nope")
