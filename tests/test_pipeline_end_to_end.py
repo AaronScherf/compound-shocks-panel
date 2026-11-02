@@ -208,3 +208,39 @@ def test_price_rows_outside_the_period_are_reported_as_a_decision(root):
     reproduce(root)
     report = json.loads((paths(root)[1] / "run_report.json").read_text(encoding="utf-8"))
     assert any("WFP" in decision and "dropped 1" in decision for decision in report["decisions"])
+
+
+def test_csv_outputs_use_lf_line_endings_on_every_platform(root):
+    reproduce(root)
+    derived, outputs = paths(root)
+    for path in (derived / "panel.csv", derived / "conflict_events.csv", outputs / "publishable_aggregates.csv"):
+        assert b"\r" not in path.read_bytes(), path.name
+
+
+def test_a_code_change_reruns_every_step(root, monkeypatch):
+    from compound_shocks import pipeline
+
+    reproduce(root)
+    log = root / "instances/somalia/data/derived/ran.log"
+    before = len(log.read_text().split())
+    monkeypatch.setattr(pipeline, "_code_fingerprint", lambda: "a-different-version-of-the-code")
+    assert reproduce(root) == 0
+    rerun = log.read_text().split()[before:]
+    for step in ("read:conflict_events", "read:prices", "read:admin_boundaries", "spatial", "aggregate", "fuse", "outputs"):
+        assert step in rerun, step
+
+
+def test_manifest_records_the_code_fingerprint_and_it_is_stable(root):
+    from compound_shocks import pipeline
+
+    reproduce(root)
+    manifest = json.loads((paths(root)[1] / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["code_fingerprint"] == pipeline._code_fingerprint()
+
+
+def test_text_hash_ignores_line_endings(tmp_path):
+    from compound_shocks.pipeline import _text_hash
+
+    (tmp_path / "lf.yaml").write_bytes(b"a: 1\nb: 2\n")
+    (tmp_path / "crlf.yaml").write_bytes(b"a: 1\r\nb: 2\r\n")
+    assert _text_hash(tmp_path / "lf.yaml") == _text_hash(tmp_path / "crlf.yaml")

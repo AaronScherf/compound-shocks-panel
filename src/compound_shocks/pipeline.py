@@ -1,17 +1,18 @@
 """Step graph for one instance. Steps pass data through files in data/derived so unchanged work is skipped."""
 
+import hashlib
 import json
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+from doit.tools import config_changed
 from reprokit.harmonization import check_gate
 from reprokit.loader import load_yaml
 from reprokit.manifest import (
     build_manifest,
     code_version,
     collect_role_files,
-    hash_file,
     resolved_packages,
     write_manifest,
 )
@@ -48,6 +49,21 @@ def check_instance_gate(root: Path, instance_dir: Path) -> list[Problem]:
     base_doc, _ = load_yaml(baseline)
     current_doc, _ = load_yaml(current)
     return check_gate(base_doc["sources"], current_doc["sources"], instance_dir / "harmonization")
+
+
+def _text_hash(path: Path) -> str:
+    """sha256 of a text file with line endings normalised, so Windows and Linux checkouts hash alike."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def _code_fingerprint() -> str:
+    """Hash of every source and mapping file in the package: a code change invalidates every step."""
+    package = Path(__file__).parent
+    digest = hashlib.sha256()
+    for path in sorted(p for p in package.rglob("*") if p.suffix in {".py", ".yaml"} and "__pycache__" not in p.parts):
+        digest.update(path.relative_to(package).as_posix().encode())
+        digest.update(path.read_bytes().replace(b"\r\n", b"\n"))
+    return digest.hexdigest()
 
 
 def _csv(path: Path) -> pd.DataFrame:
@@ -92,7 +108,7 @@ def _read(
     if role == "admin_boundaries":
         frame.to_file(target, driver="GeoJSON")
     else:
-        frame.to_csv(target, index=False)
+        frame.to_csv(target, index=False, lineterminator="\n")
     _report(report, [str(problem) for problem in frame.attrs.get("problems", [])], stats, decisions)
     _log(log, f"read:{role}")
 
@@ -103,7 +119,7 @@ def _spatial(events_file: Path, boundaries_file: Path, period: dict, target: Pat
     inside = (dates >= pd.Timestamp(period["start"])) & (dates <= pd.Timestamp(period["end"]))
     outside = int((~inside).sum())
     assigned = assign_admin2(events[inside].reset_index(drop=True), gpd.read_file(boundaries_file))
-    assigned.to_csv(target, index=False)
+    assigned.to_csv(target, index=False, lineterminator="\n")
     decisions = (
         [f"ACLED: {outside} events outside the study period {period['start']} to {period['end']} excluded"] if outside else []
     )
@@ -113,7 +129,7 @@ def _spatial(events_file: Path, boundaries_file: Path, period: dict, target: Pat
 
 def _aggregate(assigned_file: Path, target: Path, report: Path, log: Path) -> None:
     conflict = aggregate_conflict(_csv(assigned_file))
-    conflict.to_csv(target, index=False)
+    conflict.to_csv(target, index=False, lineterminator="\n")
     _report(report, [], {"unassigned_events": conflict.attrs["unassigned"]})
     _log(log, "aggregate")
 
@@ -137,7 +153,7 @@ def _fuse(derived: Path, crosswalks: Path, months: list[str], target: Path, repo
     moves, dest_problems = apply_crosswalk(moves, "dest_admin2", names, "displacement")
     panel = fuse_panel(_csv(derived / "conflict_monthly.csv"), _csv(derived / "rainfall.csv"), prices, moves,
                        sorted(districts["admin2_id"].astype(str)), months)
-    panel.to_csv(target, index=False)
+    panel.to_csv(target, index=False, lineterminator="\n")
     problems = alias_problems + price_problems + origin_problems + dest_problems
     _report(report, [str(p) for p in problems], {"panel_rows": len(panel)}, decisions)
     _log(log, "fuse")
@@ -147,7 +163,7 @@ def _outputs(instance_dir: Path, config_file: Path, root: Path, log: Path) -> No
     derived, outputs = instance_dir / "data" / "derived", instance_dir / "outputs"
     panel = pd.read_csv(derived / "panel.csv", dtype={"admin2_id": str, "month": str})
     outputs.mkdir(parents=True, exist_ok=True)
-    publishable_aggregates(panel).to_csv(outputs / "publishable_aggregates.csv", index=False)
+    publishable_aggregates(panel).to_csv(outputs / "publishable_aggregates.csv", index=False, lineterminator="\n")
     config, _ = load_yaml(config_file)
     raw_dir = instance_dir / "data" / "raw"
     manifest = build_manifest(config, collect_role_files(raw_dir, config["sources"]), raw_dir, code_version(root),
@@ -156,7 +172,8 @@ def _outputs(instance_dir: Path, config_file: Path, root: Path, log: Path) -> No
         kind: sorted(name for name, k in PANEL_COLUMNS.items() if k == kind) for kind in ("core", "extension")
     }
     instance_files = [config_file, *sorted((instance_dir / "crosswalks").glob("*.yaml"))]
-    manifest["instance_files"] = {path.relative_to(instance_dir).as_posix(): hash_file(path) for path in instance_files}
+    manifest["code_fingerprint"] = _code_fingerprint()
+    manifest["instance_files"] = {path.relative_to(instance_dir).as_posix(): _text_hash(path) for path in instance_files}
     write_manifest(manifest, outputs / "manifest.json")
     warnings, stats, decisions = [], {}, []
     for part in sorted((derived / "reports").glob("*.json")):
@@ -221,4 +238,7 @@ def tasks(instance_dir: Path, config: dict, role_files: dict[str, list[Path]], r
         "targets": [str(outputs / name) for name in ("publishable_aggregates.csv", "manifest.json", "run_report.json")],
         "actions": [(_outputs, [instance_dir, config_file, root, log])],
     })
+    fingerprint = _code_fingerprint()
+    for step in steps:
+        step["uptodate"] = [config_changed(fingerprint)]
     return steps

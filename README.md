@@ -7,6 +7,23 @@ phase is data work only: ingestion, spatial joins, a panel, exploratory plots an
 causal claims. The same steps run for another country by adding an instance folder (Sudan is the planned
 portability test).
 
+## Reproduce from scratch
+
+```
+uv sync --locked
+uv run python -m compound_shocks fetch --instance somalia --dry-run   # lists the public downloads
+uv run python -m compound_shocks fetch --instance somalia            # WFP, PRMN, COD-AB, CHIRPS (about 150 MB)
+# ACLED needs a free account: export Somalia events from acleddata.com into
+# instances/somalia/data/raw/conflict_events/ (or set ACLED_EMAIL and ACLED_PASSWORD and use fetch_acled)
+uv run python -m compound_shocks reproduce --instance somalia        # about 3 minutes
+```
+
+Outputs land in `instances/somalia/outputs/`: `publishable_aggregates.csv` (the only file meant for sharing),
+`manifest.json` (inputs, config, hashes, packages) and `run_report.json` (every processing decision applied, with
+counts, plus warnings). A second run with unchanged inputs and code does no work; a code change reruns every step.
+Raw and derived data are git-ignored. Each processing decision is listed in the decision log in `protocol.md` and
+lives in `instances/somalia/config.yaml` or `instances/somalia/crosswalks/`, never in the code.
+
 ## Quick start
 
 ```
