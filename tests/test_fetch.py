@@ -126,7 +126,7 @@ def test_fetch_writes_into_role_directory(tmp_path, web):
 
 
 def test_fetch_prmn_uses_the_pinned_dataset(tmp_path, web):
-    fake = web({"package_show": hdx_package(("SOM_UNHCR-PRMN_Displacement-Dataset.csv", "CSV")),
+    fake = web({"package_show": hdx_package(("SOM_UNHCR-PRMN-Displacement-Dataset-August-2023", "XLSX")),
                 "files.example": FakeResponse(b"month\n")})
     fetch_prmn(tmp_path)
     assert fake.calls[0][2]["params"] == {"id": "somalia-internally-displaced-persons-idps"}
@@ -145,6 +145,20 @@ def test_fetch_codab_extracts_only_admin2_geojson(tmp_path, web):
     web({"package_show": hdx_package(("som_admin_boundaries.geojson.zip", "GeoJSON")), "files.example": FakeResponse(archive)})
     path = fetch_codab(tmp_path)
     assert [p.name for p in tmp_path.glob("*.geojson")] == ["som_admin2.geojson"] and path.name == "som_admin2.geojson"
+
+
+def test_fetch_codab_prefers_the_standard_layer_over_the_edge_matched_copy(tmp_path, web):
+    archive = zipped(**{"som_admin2_em.geojson": '{"em": true}', "som_admin2.geojson": '{"em": false}'})
+    web({"package_show": hdx_package(("som_admin_boundaries.geojson.zip", "GeoJSON")), "files.example": FakeResponse(archive)})
+    path = fetch_codab(tmp_path)
+    assert path.name == "som_admin2.geojson" and '"em": false' in path.read_text(encoding="utf-8")
+
+
+def test_fetch_codab_with_two_unrelated_admin2_files_lists_them(tmp_path, web):
+    archive = zipped(**{"a_admin2.geojson": "{}", "b_admin2.geojson": "{}"})
+    web({"package_show": hdx_package(("som_admin_boundaries.geojson.zip", "GeoJSON")), "files.example": FakeResponse(archive)})
+    with pytest.raises(FetchError, match="a_admin2.geojson.*b_admin2.geojson"):
+        fetch_codab(tmp_path)
 
 
 def test_fetch_codab_without_admin2_member_lists_members(tmp_path, web):
@@ -214,6 +228,19 @@ def test_cli_fetch_dry_run_lists_urls_and_downloads_nothing(root, web, capsys):
     out = capsys.readouterr().out
     assert "chirps-v2.0.2021.01.tif.gz" in out and "wfp-food-prices-for-somalia" in out
     assert fake.calls == []
+
+
+def test_cli_fetch_role_filter_downloads_only_that_role(root, web, capsys):
+    fake = web({"package_show": hdx_package(("Somalia - Food Prices", "CSV")), "files.example": FakeResponse(b"date")})
+    assert main(["fetch", "--instance", "somalia", "--root", str(root), "--role", "prices"]) == 0
+    assert "chirps" not in capsys.readouterr().out
+    assert all("chirps" not in call[1] for call in fake.calls)
+
+
+def test_cli_fetch_unknown_role_stops_with_exit_1(root, web, capsys):
+    web({})
+    assert main(["fetch", "--instance", "somalia", "--root", str(root), "--role", "nonsense"]) == 1
+    assert "nonsense" in capsys.readouterr().out
 
 
 def test_cli_fetch_unpinned_provider_stops_with_exit_1(root, web, capsys):

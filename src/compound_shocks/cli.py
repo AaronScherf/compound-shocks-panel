@@ -60,7 +60,7 @@ PINNED = {
 CHIRPS_PROVIDER = "UCSB CHC CHIRPS"
 
 
-def _fetch(instance: str, root: Path, dry_run: bool) -> int:
+def _fetch(instance: str, root: Path, dry_run: bool, roles: list[str] | None = None) -> int:
     instance_dir = root / "instances" / instance
     if not (instance_dir / "config.yaml").exists():
         print(Problem(str(instance_dir), "", f"instance {instance!r} not found"))
@@ -69,9 +69,15 @@ def _fetch(instance: str, root: Path, dry_run: bool) -> int:
     raw = instance_dir / "data" / "raw"
     months = months_between(config["period"]["start"], config["period"]["end"])
     fetchers = {"prices": hdx.fetch_wfp_prices, "displacement": hdx.fetch_prmn, "admin_boundaries": hdx.fetch_codab}
+    unknown = sorted(set(roles or []) - set(config["sources"]))
+    if unknown:
+        print(Problem(str(instance_dir), "roles", f"unknown role(s): {', '.join(unknown)}"))
+        return 1
     downloads = []  # (description, action); decided for every role before anything is downloaded
     for role, source in config["sources"].items():
         provider = source["provider"]
+        if roles and role not in roles:
+            continue
         if role == "conflict_events":
             print(f"{role}: {provider} is a manual export (or fetch_acled with ACLED_EMAIL and ACLED_PASSWORD); skipped")
         elif role == "rainfall" and provider == CHIRPS_PROVIDER:
@@ -95,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     fetch = subcommands.add_parser("fetch", help="download the public sources for one instance into data/raw")
     fetch.add_argument("--instance", required=True)
     fetch.add_argument("--root", type=Path, default=Path("."))
+    fetch.add_argument("--role", action="append", help="fetch only this role (repeatable); default is every role")
     fetch.add_argument("--dry-run", action="store_true", help="list what would be downloaded and download nothing")
     reproduce = subcommands.add_parser("reproduce", help="rebuild every output for one instance, skipping unchanged steps")
     reproduce.add_argument("--instance", required=True)
@@ -102,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "fetch":
         try:
-            return _fetch(args.instance, args.root, args.dry_run)
+            return _fetch(args.instance, args.root, args.dry_run, args.role)
         except FetchError as exc:
             print(Problem(str(args.root), "fetch", str(exc)))
             return 1

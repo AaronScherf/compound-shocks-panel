@@ -10,7 +10,9 @@ HDX_API = "https://data.humdata.org/api/3/action/package_show"
 WFP_DATASET = "wfp-food-prices-for-somalia"
 WFP_RESOURCE = "Somalia - Food Prices"
 PRMN_DATASET = "somalia-internally-displaced-persons-idps"
-PRMN_RESOURCE = "SOM_UNHCR-PRMN_Displacement-Dataset.csv"
+# The dataset also has a 3 KB CSV ("som_prmn_map_data.csv") that is only a per-district total as at 2022-11-30.
+# The XLSX is the district-level displacement record (departure and arrival, reason), January 2016 to August 2023.
+PRMN_RESOURCE = "SOM_UNHCR-PRMN-Displacement-Dataset-August-2023"
 CODAB_DATASET = "cod-ab-som"
 CODAB_RESOURCE = "som_admin_boundaries.geojson.zip"
 
@@ -36,7 +38,7 @@ def fetch_wfp_prices(out_dir: Path, **kwargs) -> Path:
 
 
 def fetch_prmn(out_dir: Path, **kwargs) -> Path:
-    return fetch_hdx(PRMN_DATASET, PRMN_RESOURCE, out_dir, filename="prmn_displacement.csv", **kwargs)
+    return fetch_hdx(PRMN_DATASET, PRMN_RESOURCE, out_dir, filename="prmn_displacement.xlsx", **kwargs)
 
 
 def fetch_codab(out_dir: Path, **kwargs) -> Path:
@@ -46,6 +48,8 @@ def fetch_codab(out_dir: Path, **kwargs) -> Path:
     with zipfile.ZipFile(io.BytesIO(archive_path.read_bytes())) as archive:
         members = [name for name in archive.namelist() if name.lower().endswith(".geojson")]
         admin2 = [name for name in members if "admin2" in name.lower()]
+        if len(admin2) > 1:  # OCHA ships a standard layer and an edge-matched (_em) copy; use the standard one
+            admin2 = [name for name in admin2 if not name.lower().endswith("_em.geojson")]
         if len(admin2) != 1:
             raise FetchError(f"HDX {CODAB_DATASET}: expected one admin2 GeoJSON in the zip, found {admin2 or members}")
         data = archive.read(admin2[0])
