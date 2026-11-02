@@ -20,17 +20,22 @@ class WfpPricesAdapter:
         return sorted(Path(raw_dir).glob("*.csv"))
 
     def read(self, paths: list[Path], instance: dict) -> pd.DataFrame:
-        frames = []
+        frames, mixed_types = [], []
         for path in paths:
-            renamed, problems = apply_mapping(pd.read_csv(path, encoding="utf-8-sig"), load_mapping(MAPPING))
+            raw = pd.read_csv(path, encoding="utf-8-sig")
+            renamed, problems = apply_mapping(raw, load_mapping(MAPPING))
             if problems:
                 raise ValueError(f"{path.name}: " + "; ".join(map(str, problems)))
+            if "pricetype" in raw.columns:
+                price_types = sorted(raw["pricetype"].dropna().astype(str).unique())
+                if len(price_types) > 1:
+                    mixed_types.append(Problem(path.name, "pricetype", f"mixed pricetype: {', '.join(price_types)}"))
             frame = renamed[ROLE_COLUMNS[self.role]].copy()
             frame["date"] = pd.to_datetime(frame["date"]).dt.strftime("%Y-%m-%d")
             frame["price"] = pd.to_numeric(frame["price"], errors="coerce")
             frames.append(frame)
         result = pd.concat(frames, ignore_index=True)
-        problems = []
+        problems = list(mixed_types)
         for (market, commodity), group in result.groupby(["market", "commodity"], dropna=False):
             for field in ("unit", "currency"):
                 values = sorted(group[field].dropna().astype(str).unique())

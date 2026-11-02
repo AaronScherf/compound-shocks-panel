@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "reprokit @ git+https://github.com/AaronScherf/reprokit@v0.2.0",
     "pandas",
+    "openpyxl",
     "geopandas",
     "rasterio",
     "shapely",

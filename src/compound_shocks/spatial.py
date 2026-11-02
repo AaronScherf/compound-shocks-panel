@@ -11,6 +11,9 @@ from rasterio.windows import Window, from_bounds
 from shapely import transform
 from shapely.geometry import box
 
+# CHIRPS marks sea and out-of-coverage cells -9999 but its GeoTIFFs carry no nodata tag.
+CHIRPS_FILL_VALUE = -9999
+
 
 def assign_admin2(points: pd.DataFrame, boundaries: gpd.GeoDataFrame) -> pd.DataFrame:
     """Assign WGS84 lon/lat points; shared edges resolve to the lowest ID."""
@@ -45,7 +48,7 @@ def zonal_monthly(rasters: dict[str, Path], boundaries: gpd.GeoDataFrame) -> pd.
                 row1 = min(src.height, int(np.ceil(raw_window.row_off + raw_window.height)))
                 if col1 > col0 and row1 > row0:
                     window = Window(col0, row0, col1 - col0, row1 - row0)
-                    values = src.read(1, window=window, masked=True)
+                    values = np.ma.masked_equal(src.read(1, window=window, masked=True), CHIRPS_FILL_VALUE)
                     for local_row, local_col in np.ndindex(values.shape):
                         value = values[local_row, local_col]
                         if np.ma.is_masked(value) or not np.isfinite(value):

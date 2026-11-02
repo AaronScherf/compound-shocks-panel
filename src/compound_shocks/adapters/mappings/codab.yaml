@@ -1,3 +1,3 @@
-# Assumed COD-AB property names; Task 14 must verify against the downloaded file.
-ADM2_PCODE: admin2_id
-ADM2_EN: name
+# COD-AB Somalia property names, checked against som_admin2.geojson 2026-11-02 (v03, valid on 2025-01-08).
+adm2_pcode: admin2_id
+adm2_name: name

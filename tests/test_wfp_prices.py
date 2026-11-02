@@ -23,5 +23,26 @@ def test_missing_source_column_names_it(tmp_path):
         WfpPricesAdapter().read([path], {})
 
 
+def test_mixed_price_types_are_reported_not_silently_averaged(tmp_path):
+    path = tmp_path / "prices.csv"
+    path.write_text(
+        "date,market,admin2,commodity,unit,currency,price,pricetype\n"
+        "2021-01-15,M,Alpha,Sorghum,KG,SOS,10,Retail\n"
+        "2021-01-15,M,Alpha,Sorghum,KG,SOS,8,Wholesale\n",
+        encoding="utf-8",
+    )
+    problems = WfpPricesAdapter().read([path], {}).attrs["problems"]
+    assert any("pricetype" in str(p) and "Retail" in str(p) and "Wholesale" in str(p) for p in problems)
+
+
+def test_single_price_type_adds_no_problem(tmp_path):
+    path = tmp_path / "prices.csv"
+    path.write_text(
+        "date,market,admin2,commodity,unit,currency,price,pricetype\n2021-01-15,M,Alpha,Sorghum,KG,SOS,10,Retail\n",
+        encoding="utf-8",
+    )
+    assert WfpPricesAdapter().read([path], {}).attrs["problems"] == []
+
+
 def test_wfp_output_passes_check_frame():
     assert check_frame(WfpPricesAdapter().read([FIXTURE], {}), "prices") == []

@@ -21,4 +21,4 @@ def test_adapters_output_passes_check_frame():
 
     fixtures = Path(__file__).parent / "fixtures"
     assert check_frame(WfpPricesAdapter().read([fixtures / "wfp_prices_fixture.csv"], {}), "prices") == []
-    assert check_frame(PrmnAdapter().read([fixtures / "prmn_fixture.csv"], {}), "displacement") == []
+    assert check_frame(PrmnAdapter().read([fixtures / "prmn_fixture.xlsx"], {}), "displacement") == []

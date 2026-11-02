@@ -6,7 +6,7 @@ import pytest
 FIXTURES = Path(__file__).parent / "fixtures"
 RAW_FILES = {
     "conflict_events": ["acled_fixture.csv"],
-    "displacement": ["prmn_fixture.csv"],
+    "displacement": ["prmn_fixture.xlsx"],
     "prices": ["wfp_prices_fixture.csv"],
     "admin_boundaries": ["codab_fixture.geojson"],
 }

@@ -48,7 +48,7 @@ def test_fixture_values_reach_the_panel(root):
     derived, _ = paths(root)
     panel = pd.read_csv(derived / "panel.csv", dtype={"admin2_id": str, "month": str}).set_index(["admin2_id", "month"])
     assert panel.loc[("A", "2021-01"), "price_sorghum"] == 10
-    assert panel.loc[("A", "2021-01"), "displaced_individuals"] == 20
+    assert panel.loc[("A", "2021-01"), "displaced_individuals"] == 25
     assert pd.isna(panel.loc[("B", "2021-01"), "price_sorghum"])
     assert panel.loc[("A", "2021-01"), "precip_mm"] == 20 and pd.isna(panel.loc[("A", "2021-03"), "precip_mm"])
 

@@ -43,3 +43,28 @@ def test_month_taken_from_mapping_keys():
     adapter = ChirpsAdapter()
     assert adapter.provider == "UCSB CHC CHIRPS"
     assert check_frame(adapter.read(adapter.find(FIXTURES / "chirps"), {"boundaries": boundaries}), "rainfall") == []
+
+
+def _untagged_raster(path, values):
+    import numpy as np
+    import rasterio
+    from rasterio.transform import from_origin
+
+    with rasterio.open(path, "w", driver="GTiff", width=len(values), height=1, count=1, dtype="float32",
+                       crs="EPSG:4326", transform=from_origin(0, 1, 1, 1)) as dst:  # no nodata tag, like real CHIRPS
+        dst.write(np.array([values], dtype="float32"), 1)
+
+
+def test_untagged_minus_9999_cells_are_nodata_not_rainfall(tmp_path):
+    raster = tmp_path / "chirps-v2.0.2021.01.tif"
+    _untagged_raster(raster, [10, 20, -9999, -9999])
+    result = zonal_monthly({"2021-01": raster}, _boundary(1.5, 2.5))
+    assert result.loc[0, "precip_mm"] == pytest.approx(20)
+    assert result.loc[0, "coverage_frac"] == pytest.approx(0.5)
+
+
+def test_district_wholly_over_untagged_sea_cells_has_nan_precip_and_zero_coverage(tmp_path):
+    raster = tmp_path / "chirps-v2.0.2021.01.tif"
+    _untagged_raster(raster, [10, 20, -9999, -9999])
+    result = zonal_monthly({"2021-01": raster}, _boundary(2.5, 3.5))
+    assert result.loc[0, "coverage_frac"] == 0 and result.loc[0, "precip_mm"] != result.loc[0, "precip_mm"]
