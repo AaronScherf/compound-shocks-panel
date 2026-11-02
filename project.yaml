@@ -19,6 +19,10 @@ deliverables:
     audience: primary-readers
     format: csv
     build: uv run python -m compound_shocks reproduce --instance somalia
+  - id: data-audit-memo
+    audience: primary-readers
+    format: markdown
+    build: uv run python -m compound_shocks reproduce --instance somalia
 taxonomy:
   tags: []
 sources: []

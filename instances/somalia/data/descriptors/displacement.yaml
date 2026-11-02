@@ -2,11 +2,26 @@ schema_version: 0.1.0
 role: displacement
 provider: UNHCR/NRC PRMN
 title: Somalia - Internally Displaced Persons (IDPs), UNHCR-led PRMN
-query: HDX dataset somalia-internally-displaced-persons-idps (CSV and XLSX resources); no key needed. Columns not yet inspected.
-coverage_space: Somalia
-coverage_time: '2016-01/2023-08'
-variables: []
+query: HDX dataset somalia-internally-displaced-persons-idps (id 475e2e3c-3cec-4961-b73c-d8e68791ce60), XLSX resource "SOM_UNHCR-PRMN-Displacement-Dataset-August-2023", sheet OutputsArrivals. The CSV resource on the same dataset is a 3 KB per-district total as at 2022-11-30 and is not used. No key needed. Download date and sha256 are in the `.fetch.json` sidecar.
+coverage_space: Somalia, district to district flows (62,471 weekly rows)
+coverage_time: '2016-01/2023-08 in the file; all 32 months of 2021-01/2023-08 present'
+variables:
+  - name: Month End
+    meaning: Week-ending date as a day-first text string, summed to calendar months
+    unit: date
+  - name: Previous (Departure) District
+    meaning: District of origin
+    unit: text
+  - name: Current (Arrival) District
+    meaning: District of destination
+    unit: text
+  - name: Reason
+    meaning: Drought related, Conflict/Insecurity, Flood or Other
+    unit: category
+  - name: Number of Individuals
+    meaning: People reported arriving; the panel sums by origin district
+    unit: persons
 access_class: open
 reuse_terms: CC BY (as listed on HDX); verify on the dataset page.
-verification_status: proposed
+verification_status: run on acquired data
 find_in_other_geography: Monthly district-level displacement movements with a reason for displacement, ideally origin and destination districts (Sudan uses IOM DTM, which records stocks, not flows; see the Sudan findings).

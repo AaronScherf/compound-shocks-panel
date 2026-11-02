@@ -19,7 +19,7 @@ uv run python -m compound_shocks reproduce --instance somalia        # about 3 m
 ```
 
 Outputs land in `instances/somalia/outputs/`: `publishable_aggregates.csv` (the only file meant for sharing),
-`manifest.json` (inputs, config, hashes, packages) and `run_report.json` (every processing decision applied, with
+`audit_memo.md` and `.html` (what the data contain and where they are incomplete), `manifest.json` (inputs, config, hashes, packages) and `run_report.json` (every processing decision applied, with
 counts, plus warnings). A second run with unchanged inputs and code does no work; a code change reruns every step.
 Raw and derived data are git-ignored. Each processing decision is listed in the decision log in `protocol.md` and
 lives in `instances/somalia/config.yaml` or `instances/somalia/crosswalks/`, never in the code.

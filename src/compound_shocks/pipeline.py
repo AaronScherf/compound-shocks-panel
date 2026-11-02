@@ -21,6 +21,7 @@ from reprokit.validate import validate_document
 
 from compound_shocks.adapters import acled, boundaries, chirps, prmn, wfp_prices  # noqa: F401  (register adapters)
 from compound_shocks.adapters.base import get_adapter
+from compound_shocks.audit_memo import build_audit_memo
 from compound_shocks.crosswalk import (
     apply_crosswalk,
     build_name_index,
@@ -185,6 +186,11 @@ def _outputs(instance_dir: Path, config_file: Path, root: Path, log: Path) -> No
     _log(log, "outputs")
 
 
+def _audit(instance_dir: Path, log: Path) -> None:
+    build_audit_memo(instance_dir)
+    _log(log, "audit")
+
+
 def months_between(start: str, end: str) -> list[str]:
     return [period.strftime("%Y-%m") for period in pd.period_range(start, end, freq="M")]
 
@@ -237,6 +243,14 @@ def tasks(instance_dir: Path, config: dict, role_files: dict[str, list[Path]], r
         "file_dep": [str(panel), str(reports / "fuse.json"), str(config_file)] + crosswalk_files + raw_inputs,
         "targets": [str(outputs / name) for name in ("publishable_aggregates.csv", "manifest.json", "run_report.json")],
         "actions": [(_outputs, [instance_dir, config_file, root, log])],
+    })
+    descriptors = [str(path) for path in sorted((instance_dir / "data" / "descriptors").glob("*.yaml"))]
+    steps.append({
+        "name": "audit",
+        "file_dep": [str(panel), str(derived / "prices.csv"), str(boundaries_file)] + descriptors
+        + [str(outputs / name) for name in ("manifest.json", "run_report.json")],
+        "targets": [str(outputs / "audit_memo.md"), str(outputs / "audit_memo.html")],
+        "actions": [(_audit, [instance_dir, log])],
     })
     fingerprint = _code_fingerprint()
     for step in steps:
