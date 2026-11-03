@@ -4,7 +4,7 @@ provider: IOM DTM
 title: Sudan IOM DTM data for admin levels 0-2
 query: HDX dataset sdn-iom-dtm-from-api, resource "Sudan IOM DTM data for admin levels 0-2" (CSV, 65,372 rows); no key needed. The per-round XLSX resources on sudan-displacement-situation-idps-iom-dtm have differing layouts and are not used. Download date and sha256 are in the `.fetch.json` sidecar.
 coverage_space: Sudan, localities (Admin 2) as destination, states (Admin 1) as origin
-coverage_time: '2010-06/2026-08 in the file; 2021-01/2024-12 used (30,869 locality rows: 238 in 2021, 290 in 2022, 8,318 in 2023, 22,023 in 2024)'
+coverage_time: '2010-06/2026-08 in the file; 2021-01/2025-10 used (40,175 locality rows, of which 23,587 are in the Overview series that the pipeline keeps; 238 rows in 2021 and 290 in 2022 across all series)'
 variables:
   - name: admin2Name
     meaning: Locality where displaced people are present (matches COD-AB names exactly)

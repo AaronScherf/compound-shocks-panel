@@ -4,7 +4,7 @@ provider: ACLED
 title: ACLED event data export (Research Tier, myACLED account)
 query: Manual export from acleddata.com for Somalia, event dates 1997-01-01 to 2025-10-31 (101,144 rows for 52,925 events). API fetch needs ACLED_EMAIL and ACLED_PASSWORD environment variables and is untested against the live API.
 coverage_space: Somalia
-coverage_time: '1997-01-01/2025-10-31 in the file; 2021-01/2023-08 used (9,320 events)'
+coverage_time: '1997-01-01/2025-10-31 in the file; 2021-01/2025-10 used (18,941 events)'
 variables:
   - name: event_id
     meaning: ACLED event identifier; the export repeats each event once per actor row, collapsed to one row
@@ -35,5 +35,5 @@ reuse_terms: ACLED EULA (8 July 2025) and Attribution Policy; raw rows must not 
 verification_status: run on acquired data
 find_in_other_geography: Event-level political violence data with point coordinates, event type and fatalities for the new country, from ACLED (Research Tier data lags about 12 months).
 accessed: '2026-10-31'
-applied_filters: Somalia, event dates 1997-01-01 to 2025-10-31 in the export; the pipeline keeps 2021-01 to 2023-08.
-manipulation: Repeated actor rows collapsed to one row per event_id (stops if repeated rows disagree on event details); events placed in districts by coordinates only; 111 in-period events fall outside every district (including maritime rows labelled "Indian Ocean") and are counted as unassigned; aggregated to district-month totals of events and fatalities, with Mogadishu districts merged into Banadir.
+applied_filters: Somalia, event dates 1997-01-01 to 2025-10-31 in the export; the pipeline keeps 2021-01 to 2025-10.
+manipulation: Repeated actor rows collapsed to one row per event_id (stops if repeated rows disagree on event details); events placed in districts by coordinates only; 278 in-period events fall outside every district (including maritime rows labelled "Indian Ocean") and are counted as unassigned; aggregated to district-month totals of events and fatalities, with Mogadishu districts merged into Banadir.

@@ -4,7 +4,7 @@ provider: WFP
 title: Somalia - Food Prices (WFP)
 query: HDX dataset wfp-food-prices-for-somalia (id 26727d1b-af49-4323-9215-c2ac479abb87), CSV resource, fetched by `compound-shocks fetch --instance somalia --role prices`. No key needed. The file has no HXL tag row. Download date and sha256 are in the `.fetch.json` sidecar.
 coverage_space: Somalia; markets in 37 of the 74 analysis districts have a sorghum or wheat price in the study period
-coverage_time: '1995-01/2026-08 in the file; 2021-01/2023-08 used (5,999 retail rows)'
+coverage_time: '1995-01/2026-08 in the file; 2021-01/2025-10 used (21,128 retail rows)'
 variables:
   - name: date
     meaning: Month of the price observation
@@ -32,5 +32,5 @@ reuse_terms: CC BY-IGO (as listed on HDX).
 verification_status: run on acquired data
 find_in_other_geography: Monthly market prices for wheat or wheat flour, cooking oil, sorghum and maize with unit and currency, from WFP VAM (WFP Sudan lacks casual wage and live-goat prices).
 accessed: '2026-11-02'
-applied_filters: Retail price type; study period 2021-01 to 2023-08.
+applied_filters: Retail price type; study period 2021-01 to 2025-10.
 manipulation: Rows outside the study period dropped; 204 blank-district Wadajir rows assigned to Banadir; Baidoa, Kismayo and Lasqoray renamed to COD-AB spellings; panel price is the mean over markets of matching commodities. See protocol.md decision log.

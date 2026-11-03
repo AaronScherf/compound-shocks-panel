@@ -2,7 +2,7 @@
 
 This project builds a district-by-month panel combining conflict events (ACLED), rainfall (CHIRPS), food
 prices (WFP) and displacement (PRMN) over official district boundaries, starting with Somalia (2021-01 to
-2023-08). The aim is to find out what these open sources can and cannot support before any modeling. This
+2025-10; displacement data end 2023-08). The aim is to find out what these open sources can and cannot support before any modeling. This
 phase is data work only: ingestion, spatial joins, a panel, exploratory plots and an audit memo. It makes no
 causal claims. The same steps run for another country by adding an instance folder (Sudan is the planned
 portability test).

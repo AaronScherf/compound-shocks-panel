@@ -4,7 +4,7 @@ provider: UCSB CHC CHIRPS
 title: CHIRPS v2.0 monthly precipitation, Africa
 query: https://data.chc.ucsb.edu/products/CHIRPS/v2.0/africa_monthly/tifs/chirps-v2.0.YYYY.MM.tif.gz (gzipped GeoTIFF, about 4.4 MB each), 32 months fetched by `compound-shocks fetch --instance somalia --role rainfall`; no login. The older CHIRPS-2.0 path returns 404. Download dates and sha256 are in the `.fetch.json` sidecars.
 coverage_space: Africa (1500 x 1600 cells, 0.05 degree grid), reduced to Somalia districts
-coverage_time: '1981-01/present; 2021-01/2023-08 used'
+coverage_time: '1981-01/present; 2021-01/2025-10 used'
 variables:
   - name: precip_mm
     meaning: Area-weighted mean monthly precipitation over the district's valid cells
