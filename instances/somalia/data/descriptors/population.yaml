@@ -3,14 +3,14 @@ role: population
 provider: OCHA COD-PS
 title: District population estimates (OCHA COD-PS)
 query: HDX dataset cod-ps-som, resource som_pplp_adm2_v2.csv, fetched by `compound-shocks fetch --instance somalia --role population`. No key needed. Download date and sha256 are in the `.fetch.json` sidecar.
-coverage_space: 'Somalia, 74 Admin 2 rows (HDX resource som_pplp_adm2_v2.csv). T_TL is read as the 2014 total (UNFPA) and T_TL_2005 as the 2005 figure (UNDP), following the HDX dataset description, which lists 2005 (UNDP) and 2014 (UNFPA, rural, urban, IDP and total) populations. That description speaks of Admin 1 (region) statistics although this file is at Admin 2, and the column-to-year reading is ours; the 2014 total includes IDPs as counted then'
+coverage_space: 'Somalia, 74 Admin 2 rows (HDX resource som_pplp_adm2_v2.csv). T_TL is read as the 2014 total (UNFPA) and T_TL_2005 as the 2005 figure (UNDP), following the HDX dataset description, which lists 2005 (UNDP) and 2014 (UNFPA, rural, urban, IDP and total) populations. The file is Admin 2; the Admin 1 columns in it are the region groupings of the districts. The owner confirmed the column-to-year reading against the HDX file description on 2026-11-03. The figures are modelled humanitarian-planning estimates, not census or official district statistics; the 2014 total includes IDPs as counted then'
 coverage_time: 'One fixed 2014 estimate per district (UNFPA), repeated in every month of 2021-2025; not a monthly series. Mogadishu is one row (SO2201), so the Banadir merge needs no splitting.'
 variables:
   - name: T_TL
     meaning: Total population of the district
     unit: persons
 access_class: open
-reuse_terms: As listed on the HDX dataset page (confirm before reuse).
+reuse_terms: 'HDX licence "Other": restricted for use only in HRP and Humanitarian Operations. The owner reviewed this on 2026-11-03 and found no issue for this use. Caveats on the HDX page: modelled indicative planning estimates, not official district statistics; not for legal, political, electoral, boundary or entitlement purposes.'
 verification_status: run on acquired data
 find_in_other_geography: OCHA COD-PS for the country (dataset cod-ps-<iso3> on HDX), with the same Admin 2 P-codes as COD-AB.
 accessed: '2026-11-02'

@@ -101,7 +101,7 @@ Columns are marked so nobody compares what cannot be compared.
   `events`, `fatalities`, `precip_mm`, `coverage_frac`, `price_sorghum`, `price_wheat`.
 - **Extension columns** depend on what a country's sources provide and are never compared across countries:
   - `population`: one fixed estimate per district repeated every month, not a time series (Somalia's is read as the
-    2014 UNFPA estimate; that reading is still to be confirmed),
+    2014 UNFPA estimate, confirmed against the HDX file description; these are modelled planning estimates, not census figures),
   - Somalia: `displaced_individuals`, a PRMN **flow** (people arriving, summed by origin district; missing after 2023-08),
   - Sudan: `displaced_stock` and `displaced_stock_change`, a DTM **stock** and its month-to-month change (a proxy
     that mixes arrivals with departures and re-counts; missing where there is no report, none before 2023-08),
@@ -119,7 +119,8 @@ locality-months (18 of 189 localities). Read the audit memo before using them.
 | Source | Terms | What this repo does |
 | --- | --- | --- |
 | ACLED | [ACLED EULA (8 July 2025)](https://acleddata.com/terms-of-use/) and Attribution Policy | Raw event rows are never committed or shared. Only district-month totals (`events`, `fatalities`; no coordinates, dates, IDs or notes) are produced for sharing, with citation. |
-| OCHA COD-AB (boundaries), COD-PS (population) | CC BY-IGO as listed on HDX (population: confirm on the dataset page) | Downloaded at run time, not redistributed here. |
+| OCHA COD-AB (boundaries) | CC BY-IGO as listed on HDX | Downloaded at run time, not redistributed here. |
+| OCHA COD-PS (population) | Somalia: HDX licence "Other", **restricted for use only in HRP and Humanitarian Operations**; modelled indicative estimates, not for legal, political, electoral, boundary or entitlement uses. Sudan: confirm on the dataset page. | Same. Check that your own use is permitted before you rely on it. |
 | WFP food prices | CC BY-IGO as listed on HDX | Same. |
 | IOM DTM | CC BY 4.0 / IOM data protection principles as listed on HDX | Same. |
 | UNHCR/NRC PRMN | CC BY as listed on HDX | Same. |
