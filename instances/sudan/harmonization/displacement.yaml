@@ -19,5 +19,5 @@ rationale: >-
   Leaving gaps missing keeps pre-war months from looking like zero displacement. The Somalia flow columns and the Sudan stock
   columns are therefore not comparable; cross-country work uses the core columns only.
 affected_outputs: [panel, publishable_aggregates, audit_memo]
-approved_by: Draft by Claude 2026-11-02, awaiting approval by Aaron Scherf
+approved_by: Aaron Scherf (approved 2026-11-02 in a Claude Code session; draft written by Claude)
 date: '2026-11-02'
