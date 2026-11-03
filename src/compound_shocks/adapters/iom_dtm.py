@@ -9,13 +9,10 @@ from compound_shocks.adapters.mapping import apply_mapping, load_mapping
 from compound_shocks.schema import STOCK_COLUMNS
 
 MAPPING = Path(__file__).parent / "mappings" / "iom_dtm.yaml"
-# DTM publishes overlapping series. Where two report the same locality on the same day, the first listed wins.
-OPERATION_PRECEDENCE = [
-    "Armed Clashes in Sudan (Overview)",
-    "Armed Clashes in Sudan (Monthly)",
-    "Armed Clashes in Sudan",
-    "Darfur conflict",
-]
+# DTM publishes overlapping series whose levels disagree for the same locality and month (the Monthly and original
+# series run at about 2.4 to 3 times the Overview in the overlap), so mixing them would put series switches into the
+# stock and its change. Only this one series is used; other operations are dropped, not filled in.
+PRIMARY_OPERATION = "Armed Clashes in Sudan (Overview)"
 KEY = ["month", "dest_admin2", "origin_admin1"]
 
 
@@ -40,24 +37,23 @@ class IomDtmAdapter:
         if period:
             inside = (locality["date"] >= pd.Timestamp(period["start"])) & (locality["date"] <= pd.Timestamp(period["end"]))
             outside, locality = int((~inside).sum()), locality[inside]
+        other = int((locality["operation"] != PRIMARY_OPERATION).sum())
+        locality = locality[locality["operation"] == PRIMARY_OPERATION].copy()
         locality["month"] = locality["date"].dt.strftime("%Y-%m")
         locality["stock"] = pd.to_numeric(locality["stock"], errors="coerce")
-        locality["rank"] = locality["operation"].map({name: i for i, name in enumerate(OPERATION_PRECEDENCE)}).fillna(
-            len(OPERATION_PRECEDENCE)
-        )
         for column in ("dest_admin2", "origin_admin1"):
             locality[column] = locality[column].astype("string").str.strip()
         locality["origin_admin1"] = locality["origin_admin1"].fillna("Not available")
         before = len(locality)
-        # Several reports per month: keep the last day, then the preferred series, and add up the reason rows.
+        # Several reports per month: keep the last day and add up the reason rows.
         locality = locality[locality["date"] == locality.groupby(KEY)["date"].transform("max")]
-        locality = locality[locality["rank"] == locality.groupby(KEY)["rank"].transform("min")]
         result = locality.groupby(KEY, as_index=False)["stock"].sum(min_count=1)[STOCK_COLUMNS]
         result.attrs["schema"] = "displacement_stock"
         result.attrs["decisions"] = [
             (f"IOM DTM: displacement is a stock (people present), not a flow; {outside} locality rows outside the study "
-            f"period excluded; {before - len(locality)} of {before} rows superseded by a later report in the same month "
-            "or by a preferred DTM series; reason rows summed")
+            f"period excluded; {other} rows from operations other than {PRIMARY_OPERATION!r} excluded; "
+            f"{before - len(locality)} of {before} rows superseded by a later report in the same month; "
+            "reason rows summed")
         ]
         return result
 

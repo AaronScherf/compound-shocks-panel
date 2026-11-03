@@ -3,8 +3,8 @@ role: population
 provider: OCHA COD-PS
 title: District population estimates (OCHA COD-PS)
 query: HDX dataset cod-ps-som, resource som_pplp_adm2_v2.csv, fetched by `compound-shocks fetch --instance somalia --role population`. No key needed. Download date and sha256 are in the `.fetch.json` sidecar.
-coverage_space: 'Somalia humanitarian response planning estimates (HDX resource som_pplp_adm2_v2.csv, 74 Admin 2 rows); T_TL is the current total, T_TL_2005 the 2005 figure. The planning-year label is not in the file: confirm it on the HDX page'
-coverage_time: 'One fixed estimate per district, not a monthly series. Mogadishu is one row (SO2201), so the Banadir merge needs no splitting.'
+coverage_space: 'Somalia, 74 Admin 2 rows (HDX resource som_pplp_adm2_v2.csv). T_TL is read as the 2014 total (UNFPA) and T_TL_2005 as the 2005 figure (UNDP), following the HDX dataset description, which lists 2005 (UNDP) and 2014 (UNFPA, rural, urban, IDP and total) populations. That description speaks of Admin 1 (region) statistics although this file is at Admin 2, and the column-to-year reading is ours; the 2014 total includes IDPs as counted then'
+coverage_time: 'One fixed 2014 estimate per district (UNFPA), repeated in every month of 2021-2025; not a monthly series. Mogadishu is one row (SO2201), so the Banadir merge needs no splitting.'
 variables:
   - name: T_TL
     meaning: Total population of the district

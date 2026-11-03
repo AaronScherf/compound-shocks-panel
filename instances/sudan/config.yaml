@@ -1,10 +1,9 @@
 schema_version: 0.1.0
 geography: Sudan
-# Window (my call, 2026-11-02, for the owner to confirm): two years before the April 2023 war and the first
-# 21 months after it, so price and displacement coverage can be compared across the break.
+# Window: 2021-01 to the end of the ACLED export (2025-10-31), the latest month all sources cover. Owner chose on 2026-11-02 to use all available data; the war began April 2023.
 period:
   start: '2021-01-01'
-  end: '2024-12-31'
+  end: '2025-10-31'
 sources:
   conflict_events:
     provider: ACLED

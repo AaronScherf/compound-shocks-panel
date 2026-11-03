@@ -19,7 +19,7 @@ def test_somalia_and_sudan_instances_exist():
 def test_somalia_config_names_all_five_roles_and_the_decided_window():
     config = yaml.safe_load((ROOT / "instances/somalia/config.yaml").read_text())
     assert sorted(config["sources"]) == sorted(ROLES)
-    assert config["period"] == {"start": "2021-01-01", "end": "2023-08-31"}
+    assert config["period"] == {"start": "2021-01-01", "end": "2025-10-31"}
 
 
 def test_somalia_has_a_descriptor_for_every_role():

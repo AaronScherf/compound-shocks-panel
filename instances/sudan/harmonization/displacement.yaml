@@ -7,15 +7,16 @@ differences: >-
   IOM DTM (Sudan) records stocks: the number of displaced people present in a locality at each assessment round,
   split by state of origin. 99.5% of locality rows in the study window are coded "Conflict". DTM has few reports
   before the April 2023 war (238 locality rows in 2021, 290 in 2022) and 22,023 in 2024. Origin is a state (Admin 1),
-  not a locality. Several DTM series overlap, with different numbers for the same locality and day.
+  not a locality. Several DTM operations overlap and disagree: in 2021-01 to 2025-10, 1,559 of 5,563 locality-months have rows from more than one operation, and the Monthly and original series run at a median of about 3.0 and 2.4 times the Overview where they overlap (almost never identical).
 decision: >-
   Keep the stock as its own panel columns (displaced_stock, displaced_stock_change) and do not fill
-  displaced_individuals, so a stock is never read as a flow. Per locality, state of origin and month, use the last
-  report in the month, prefer the Overview series, then Monthly, then the original series, and add up reason rows.
+  displaced_individuals, so a stock is never read as a flow. Use only the "Armed Clashes in Sudan (Overview)" operation and drop the others, not fill from them, so the stock
+  and its change never splice series at different levels. Per locality, state of origin and month, use the last report
+  in the month and add up reason rows.
   The change is the difference from the previous calendar month and is missing when that month has no report.
 rationale: >-
-  A change in a stock mixes new arrivals with departures, returns and re-counts, so it is a proxy, not a flow. Leaving
-  gaps missing keeps pre-war months from looking like zero displacement. The Somalia flow columns and the Sudan stock
+  A change in a stock mixes new arrivals with departures, returns and re-counts, so it is a proxy, not a flow. Mixing operations gave 184 of 185 localities a switch of series over time, which would show up as jumps in the change.
+  Leaving gaps missing keeps pre-war months from looking like zero displacement. The Somalia flow columns and the Sudan stock
   columns are therefore not comparable; cross-country work uses the core columns only.
 affected_outputs: [panel, publishable_aggregates, audit_memo]
 approved_by: Draft by Claude 2026-11-02, awaiting approval by Aaron Scherf

@@ -37,12 +37,14 @@ def test_latest_report_in_the_month_wins_and_reasons_are_added(tmp_path):
     assert result["stock"].tolist() == [75]
 
 
-def test_preferred_series_wins_on_the_same_day(tmp_path):
+def test_only_the_overview_series_is_used_and_others_are_not_mixed_in(tmp_path):
     result = read(tmp_path, [
         [MONTHLY, "2", "Alpha", "SD01", "999", "2021-01-31T00:00:00", "Conflict"],
-        [OVERVIEW, "2", "Alpha", "SD01", "100", "2021-01-31T00:00:00", "Conflict"],
+        [OVERVIEW, "2", "Alpha", "SD01", "100", "2021-01-15T00:00:00", "Conflict"],
+        [MONTHLY, "2", "Bravo", "SD01", "50", "2021-02-28T00:00:00", "Conflict"],
     ])
-    assert result["stock"].tolist() == [100]
+    assert result[["dest_admin2", "stock"]].values.tolist() == [["Alpha", 100]]
+    assert "2 rows from operations other than" in result.attrs["decisions"][0]
 
 
 def test_only_locality_rows_inside_the_period_are_kept(tmp_path):
