@@ -6,6 +6,6 @@ authors:
   - family-names: Scherf
     given-names: Aaron
     alias: AaronScherf
-version: 0.1.0
+version: 0.1.1
 repository-code: https://github.com/AaronScherf/compound-shocks-panel
 license: MIT

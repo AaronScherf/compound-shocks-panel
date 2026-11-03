@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased (0.1.0, Phase A data pipeline; not yet tagged)
+## 0.1.1 (2026-11-03)
+
+- Somalia population reading confirmed against the HDX file description (2014 UNFPA total, 2005 UNDP figure; modelled planning estimates).
+- Licence corrected: the Somalia COD-PS population file is "restricted for use only in HRP and Humanitarian Operations", not CC BY-IGO; the README licence table now says so. No data or output changes; panel and aggregate hashes are unchanged.
+- Clean-room checks recorded for Somalia and Sudan (hashes matched in a fresh clone); run times corrected to about 15 and 20 minutes.
+
+## 0.1.0 (2026-11-02, Phase A data pipeline)
 
 - Somalia panel: 74 districts x 58 months (2021-01 to 2025-10). Displacement (PRMN flow) present to 2023-08 only.
 - Sudan panel: 189 localities x 58 months (2021-01 to 2025-10). Displacement is the IOM DTM Overview stock only;

@@ -7,7 +7,7 @@ one country: armed conflict (ACLED), rainfall (CHIRPS), food prices (WFP) and di
 IOM DTM for Sudan), all matched to official district boundaries (OCHA COD-AB). The aim is to find out what these
 open sources can and cannot support before anyone models anything.
 
-This is **data work only** (version 0.1.0, "Phase A"): downloading, matching places and dates, building the
+This is **data work only** (version 0.1.1, "Phase A"): downloading, matching places and dates, building the
 panel, exploratory plots and an audit memo that says where the data are thin. It makes **no causal claims** and
 runs no regressions.
 
@@ -154,7 +154,7 @@ adaptation steps for a person or an AI agent. See `CHANGELOG.md` for versions.
 
 Cite the software with `CITATION.cff` (GitHub's "Cite this repository" button reads it):
 
-> Scherf, A. (2026). *Compound Shocks Panel* (version 0.1.0) [Computer software]. https://github.com/AaronScherf/compound-shocks-panel
+> Scherf, A. (2026). *Compound Shocks Panel* (version 0.1.1) [Computer software]. https://github.com/AaronScherf/compound-shocks-panel
 
 Also cite each data source as its provider requires, ACLED's Attribution Policy in particular.
 
