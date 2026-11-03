@@ -51,7 +51,8 @@ def _reproduce(instance: str, root: Path) -> int:
     return int(bool(DoitMain(ModuleTaskLoader(namespace)).run(["run"])))
 
 
-FETCHERS = {"prices": hdx.fetch_wfp_prices, "displacement": hdx.fetch_displacement, "admin_boundaries": hdx.fetch_codab}
+FETCHERS = {"prices": hdx.fetch_wfp_prices, "displacement": hdx.fetch_displacement, "admin_boundaries": hdx.fetch_codab,
+            "population": hdx.fetch_population}
 CHIRPS_PROVIDER = "UCSB CHC CHIRPS"
 
 

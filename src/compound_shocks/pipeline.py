@@ -24,6 +24,7 @@ from compound_shocks.adapters import (  # noqa: F401  (register adapters)
     boundaries,
     chirps,
     iom_dtm,
+    population,
     prmn,
     wfp_prices,
 )
@@ -38,7 +39,7 @@ from compound_shocks.crosswalk import (
 from compound_shocks.panel import aggregate_conflict, fuse_panel, publishable_aggregates
 from compound_shocks.schema import PANEL_COLUMNS, check_frame
 from compound_shocks.spatial import assign_admin2
-from compound_shocks.units import merge_units
+from compound_shocks.units import merge_populations, merge_units
 
 BASELINE_INSTANCE = "somalia"
 TEXT_COLUMNS = ("admin2_id", "month", "date", "admin2", "origin_admin2", "dest_admin2", "market", "commodity",
@@ -110,6 +111,9 @@ def _read(
         frame, merged = merge_units(frame, merges)
         decisions += merged
         stats["boundary_vintage"] = frame.attrs.get("vintage")
+    if role == "population":
+        frame, merged = merge_populations(frame, merges)
+        decisions += merged
     fatal = check_frame(frame, frame.attrs.get("schema", role))
     if fatal:
         raise ValueError("; ".join(str(problem) for problem in fatal))
@@ -164,7 +168,7 @@ def _fuse(derived: Path, crosswalks: Path, months: list[str], target: Path, repo
         moves, origin_problems = apply_crosswalk(moves, "origin_admin2", names, "displacement")
     moves, dest_problems = apply_crosswalk(moves, "dest_admin2", names, "displacement")
     panel = fuse_panel(_csv(derived / "conflict_monthly.csv"), _csv(derived / "rainfall.csv"), prices, moves,
-                       sorted(districts["admin2_id"].astype(str)), months)
+                       sorted(districts["admin2_id"].astype(str)), months, _csv(derived / "population.csv"))
     panel.to_csv(target, index=False, lineterminator="\n")
     problems = alias_problems + price_problems + origin_problems + dest_problems
     _report(report, [str(p) for p in problems], {"panel_rows": len(panel)}, decisions)
@@ -239,7 +243,7 @@ def tasks(instance_dir: Path, config: dict, role_files: dict[str, list[Path]], r
         "targets": [str(conflict), str(reports / "aggregate.json")],
         "actions": [(_aggregate, [assigned, conflict, reports / "aggregate.json", log])],
     })
-    inputs = [conflict, boundaries_file] + [derived / f"{role}.csv" for role in ("prices", "displacement", "rainfall")]
+    inputs = [conflict, boundaries_file] + [derived / f"{role}.csv" for role in ("prices", "displacement", "rainfall", "population")]
     panel = derived / "panel.csv"
     steps.append({
         "name": "fuse",

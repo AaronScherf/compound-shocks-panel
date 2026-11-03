@@ -38,6 +38,10 @@ def fetch_hdx(
 SUDAN_WFP = ("wfp-food-prices-for-sudan", "Sudan - Food Prices")
 SUDAN_DTM = ("sdn-iom-dtm-from-api", "Sudan IOM DTM data for admin levels 0-2")
 SUDAN_CODAB = ("cod-ab-sdn", "sdn_admin_boundaries.geojson.zip")
+# OCHA COD-PS district population: Somalia 2026 humanitarian planning estimates (column T_TL, with 2005 figures alongside),
+# Sudan 2024 estimates. One fixed figure per district; the vintage is recorded in the descriptor.
+SOMALIA_COD_PS = ("cod-ps-som", "som_pplp_adm2_v2.csv")
+SUDAN_COD_PS = ("cod-ps-sdn", "sdn_admpop_adm2_2024.csv")
 
 # instance name -> role -> (provider, dataset, resource, saved filename); the CLI reads this to fetch an instance
 SOURCES: dict[str, dict[str, tuple[str, str, str, str]]] = {
@@ -45,17 +49,24 @@ SOURCES: dict[str, dict[str, tuple[str, str, str, str]]] = {
         "prices": ("WFP", WFP_DATASET, WFP_RESOURCE, "wfp_prices_somalia.csv"),
         "displacement": ("UNHCR/NRC PRMN", PRMN_DATASET, PRMN_RESOURCE, "prmn_displacement.xlsx"),
         "admin_boundaries": ("OCHA COD-AB", CODAB_DATASET, CODAB_RESOURCE, ""),
+        "population": ("OCHA COD-PS", *SOMALIA_COD_PS, "population_somalia.csv"),
     },
     "sudan": {
         "prices": ("WFP", *SUDAN_WFP, "wfp_prices_sudan.csv"),
         "displacement": ("IOM DTM", *SUDAN_DTM, "iom_dtm_admin0-2.csv"),
         "admin_boundaries": ("OCHA COD-AB", *SUDAN_CODAB, ""),
+        "population": ("OCHA COD-PS", *SUDAN_COD_PS, "population_sudan.csv"),
     },
 }
 
 
 def fetch_wfp_prices(out_dir: Path, geography: str = "somalia", **kwargs) -> Path:
     _, dataset, resource, name = SOURCES[geography]["prices"]
+    return fetch_hdx(dataset, resource, out_dir, filename=name, **kwargs)
+
+
+def fetch_population(out_dir: Path, geography: str, **kwargs) -> Path:
+    _, dataset, resource, name = SOURCES[geography]["population"]
     return fetch_hdx(dataset, resource, out_dir, filename=name, **kwargs)
 
 

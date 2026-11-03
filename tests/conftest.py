@@ -9,6 +9,7 @@ RAW_FILES = {
     "displacement": ["prmn_fixture.xlsx"],
     "prices": ["wfp_prices_fixture.csv"],
     "admin_boundaries": ["codab_fixture.geojson"],
+    "population": ["population_fixture.csv"],
 }
 
 

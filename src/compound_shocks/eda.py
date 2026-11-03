@@ -8,6 +8,7 @@ SOURCE_GROUPS: dict[str, list[str]] = {
     "rainfall": ["precip_mm", "coverage_frac"],
     "prices": ["price_sorghum", "price_wheat"],
     "displacement": ["displaced_individuals", "displaced_stock", "displaced_stock_change"],
+    "context": ["population"],
 }
 CONFLICT_COLUMNS = frozenset(SOURCE_GROUPS["conflict"])
 
@@ -62,7 +63,12 @@ def district_summary(panel: pd.DataFrame, column: str) -> pd.Series:
 
 
 def _conflict_means(frame: pd.DataFrame) -> dict:
+    rate = None
+    if "population" in frame and (frame["population"] > 0).any():
+        sized = frame[frame["population"] > 0]
+        rate = round(float((sized["events"] / sized["population"] * 100_000).mean()), 2)
     return {
+        "events_per_100k": rate,
         "district_months": len(frame),
         "mean_events": round(float(frame["events"].mean()), 2) if len(frame) else None,
         "share_with_events": round(float((frame["events"] > 0).mean()), 3) if len(frame) else None,

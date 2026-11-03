@@ -1,0 +1,18 @@
+schema_version: 0.1.0
+role: population
+provider: OCHA COD-PS
+title: District population estimates (OCHA COD-PS)
+query: HDX dataset cod-ps-sdn, resource sdn_admpop_adm2_2024.csv, fetched by `compound-shocks fetch --instance sudan --role population`. No key needed. Download date and sha256 are in the `.fetch.json` sidecar.
+coverage_space: 'Sudan 2024 estimates (188 Admin 2 rows; Abyei SD19001 has none); T_TL is the total'
+coverage_time: 'One fixed estimate per district, not a monthly series. Abyei has no population figure and stays missing.'
+variables:
+  - name: T_TL
+    meaning: Total population of the district
+    unit: persons
+access_class: open
+reuse_terms: As listed on the HDX dataset page (confirm before reuse).
+verification_status: run on acquired data
+find_in_other_geography: OCHA COD-PS for the country (dataset cod-ps-<iso3> on HDX), with the same Admin 2 P-codes as COD-AB.
+accessed: '2026-11-02'
+applied_filters: Total population column only; age and sex columns not used.
+manipulation: Merged districts have their populations added (see run_report decisions). Used as a fixed context column repeated in every month, never as a time series.

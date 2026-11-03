@@ -21,6 +21,9 @@ sources:
   admin_boundaries:
     provider: OCHA COD-AB
     dataset: Sudan - Subnational Administrative Boundaries, HDX cod-ab-sdn
+  population:
+    provider: OCHA COD-PS
+    dataset: Sudan population estimates, HDX cod-ps-sdn
 parameters:
   imported_basket: [wheat flour, cooking oil]
   local_basket: [sorghum, millet]

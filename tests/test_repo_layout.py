@@ -4,7 +4,7 @@ import yaml
 from reprokit.cli import main
 
 ROOT = Path(__file__).parent.parent
-ROLES = ["conflict_events", "displacement", "prices", "rainfall", "admin_boundaries"]
+ROLES = ["conflict_events", "displacement", "prices", "rainfall", "admin_boundaries", "population"]
 
 
 def test_reprokit_validate_passes_on_repo(capsys):

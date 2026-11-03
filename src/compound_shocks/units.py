@@ -7,6 +7,21 @@ import shapely
 REQUIRED = ("id", "name", "members")
 
 
+def merge_populations(population: pd.DataFrame, merges: list[dict]) -> tuple[pd.DataFrame, list[str]]:
+    """Add up the population of each merge's members under the merged id; members with no row are skipped."""
+    if not merges:
+        return population, []
+    claimed = {member: merge["id"] for merge in merges for member in merge["members"]}
+    grouped = population.assign(admin2_id=population["admin2_id"].map(lambda i: claimed.get(i, i)))
+    result = grouped.groupby("admin2_id", as_index=False)["population"].sum(min_count=1)
+    notes = []
+    for merge in merges:
+        found = int(population["admin2_id"].isin(merge["members"]).sum())
+        notes.append(f"population: {found} of {len(merge['members'])} members of {merge['id']} had a row; their totals were added")
+    result.attrs.update(population.attrs)
+    return result, notes
+
+
 def merge_units(boundaries: gpd.GeoDataFrame, merges: list[dict]) -> tuple[gpd.GeoDataFrame, list[str]]:
     """Dissolve each merge's member districts into one unit; return the new boundaries and a note per merge.
 

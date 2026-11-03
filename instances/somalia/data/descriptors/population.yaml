@@ -1,0 +1,18 @@
+schema_version: 0.1.0
+role: population
+provider: OCHA COD-PS
+title: District population estimates (OCHA COD-PS)
+query: HDX dataset cod-ps-som, resource som_pplp_adm2_v2.csv, fetched by `compound-shocks fetch --instance somalia --role population`. No key needed. Download date and sha256 are in the `.fetch.json` sidecar.
+coverage_space: 'Somalia humanitarian response planning estimates (HDX resource som_pplp_adm2_v2.csv, 74 Admin 2 rows); T_TL is the current total, T_TL_2005 the 2005 figure. The planning-year label is not in the file: confirm it on the HDX page'
+coverage_time: 'One fixed estimate per district, not a monthly series. Mogadishu is one row (SO2201), so the Banadir merge needs no splitting.'
+variables:
+  - name: T_TL
+    meaning: Total population of the district
+    unit: persons
+access_class: open
+reuse_terms: As listed on the HDX dataset page (confirm before reuse).
+verification_status: run on acquired data
+find_in_other_geography: OCHA COD-PS for the country (dataset cod-ps-<iso3> on HDX), with the same Admin 2 P-codes as COD-AB.
+accessed: '2026-11-02'
+applied_filters: Total population column only; age and sex columns not used.
+manipulation: Merged districts have their populations added (see run_report decisions). Used as a fixed context column repeated in every month, never as a time series.

@@ -46,7 +46,7 @@ repository. For sources that need an account, register with the provider, put yo
 Core columns exist for every country and are the only ones used in cross-country comparison: `events`,
 `fatalities`, `precip_mm`, `coverage_frac`, `price_sorghum`, `price_wheat`.
 
-Extension columns depend on what a country's sources provide: `displaced_individuals` (flows, PRMN), `displaced_stock` and `displaced_stock_change` (stocks, IOM DTM), `price_goat`,
+Extension columns depend on what a country's sources provide: `population` (fixed district total, repeated each month), `displaced_individuals` (flows, PRMN), `displaced_stock` and `displaced_stock_change` (stocks, IOM DTM), `price_goat`,
 `wage_labor`, `tot_goat_sorghum`, `tot_wage_sorghum`.
 
 ## AI and compute

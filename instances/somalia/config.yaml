@@ -20,6 +20,9 @@ sources:
   admin_boundaries:
     provider: OCHA COD-AB
     dataset: Somalia - Subnational Administrative Boundaries, HDX cod-ab-som
+  population:
+    provider: OCHA COD-PS
+    dataset: Somalia population estimates for humanitarian planning, HDX cod-ps-som
 parameters:
   imported_basket: [wheat flour, cooking oil]
   local_basket: [red sorghum, white maize]

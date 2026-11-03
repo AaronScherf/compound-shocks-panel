@@ -8,6 +8,7 @@ from compound_shocks.schema import PANEL_COLUMNS, ROLE_COLUMNS, check_frame
 SQUARE = Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])
 
 VALID = {
+    "population": pd.DataFrame({"admin2_id": ["A", "B"], "population": [1000, 2000.5]}),
     "conflict_events": pd.DataFrame(
         {"event_id": ["a1", "a2"], "date": ["2021-01-05", "2021-01-09"], "lat": [2.0, 3.1], "lon": [45.3, 44.9],
          "event_type": ["Battles", "Riots"], "sub_event_type": ["Armed clash", "Violent demonstration"],

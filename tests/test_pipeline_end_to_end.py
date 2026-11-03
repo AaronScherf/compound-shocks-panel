@@ -7,7 +7,7 @@ from conftest import make_instance
 from compound_shocks.cli import main
 
 REPORT_PANEL = ["admin2_id", "month", "events", "fatalities", "precip_mm", "coverage_frac", "price_sorghum",
-                "price_wheat", "displaced_individuals"]
+                "price_wheat", "displaced_individuals", "population"]
 
 
 def reproduce(root, instance="somalia"):
@@ -78,7 +78,7 @@ def test_manifest_lists_core_and_extension_columns(root):
     reproduce(root)
     manifest = json.loads((paths(root)[1] / "manifest.json").read_text(encoding="utf-8"))
     assert "events" in manifest["panel_columns"]["core"] and "displaced_individuals" in manifest["panel_columns"]["extension"]
-    assert set(manifest["inputs"]) == {"conflict_events", "displacement", "prices", "rainfall", "admin_boundaries"}
+    assert set(manifest["inputs"]) == {"conflict_events", "displacement", "prices", "rainfall", "admin_boundaries", "population"}
 
 
 def test_rerun_is_idempotent(root):

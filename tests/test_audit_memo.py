@@ -95,3 +95,10 @@ def test_project_charter_lists_the_audit_memo_deliverable():
 def test_memo_compares_conflict_where_prices_are_present_and_missing(memo_root):
     text = memo_text(memo_root)
     assert "## Price gaps and conflict" in text and "Districts that never do" in text and "no test is run" in text
+
+
+def test_memo_lists_market_districts_with_population_and_months_priced(memo_root):
+    text = memo_text(memo_root)
+    assert "districts have a sorghum price in at least one month" in text
+    assert "| District | Population | Months with a price | Share | Events in period |" in text
+    assert "Events per 100,000 residents" in text

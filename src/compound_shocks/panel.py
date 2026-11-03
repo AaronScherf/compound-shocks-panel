@@ -53,6 +53,7 @@ def fuse_panel(
     displacement: pd.DataFrame,
     admin2_ids: list[str],
     months: list[str],
+    population: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """One row per (admin2_id, month). No events means 0; missing prices, rain and displacement stay NaN.
 
@@ -77,6 +78,8 @@ def fuse_panel(
             .rename(columns={"origin_admin2": "admin2_id", "individuals": "displaced_individuals"})
         )
     panel = panel.merge(moved, on=["admin2_id", "month"], how="left")
+    if population is not None:  # one fixed figure per district, repeated in every month
+        panel = panel.merge(population[["admin2_id", "population"]].astype({"admin2_id": str}), on="admin2_id", how="left")
     panel.attrs["column_kinds"] = dict(PANEL_COLUMNS)
     return panel
 

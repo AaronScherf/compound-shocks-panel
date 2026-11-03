@@ -19,6 +19,9 @@ sources:
   admin_boundaries:
     provider: OCHA COD-AB
     dataset: synthetic boundaries fixture
+  population:
+    provider: OCHA COD-PS
+    dataset: synthetic population fixture
 parameters:
   imported_basket: [wheat flour]
   local_basket: [sorghum]

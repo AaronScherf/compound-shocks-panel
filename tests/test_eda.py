@@ -88,3 +88,15 @@ def test_missingness_vs_conflict_separates_districts_and_months():
     assert result["by_year"][0]["share_observed"] == 0.5
     with pytest.raises(ValueError, match="unknown panel column"):
         missingness_vs_conflict(panel, "nope")
+
+
+def test_conflict_rate_per_100k_is_reported_when_population_is_present():
+    from compound_shocks.eda import missingness_vs_conflict
+
+    panel = pd.DataFrame({
+        "admin2_id": ["A", "A", "B", "B"], "month": ["2021-01", "2021-02"] * 2, "events": [10, 10, 1, 1],
+        "fatalities": 0, "population": [100_000, 100_000, 1_000, 1_000], "price_sorghum": [1.0, 1.0, NAN, NAN],
+    })
+    cut = missingness_vs_conflict(panel)["district_cut"]
+    assert cut["ever_has_value"]["events_per_100k"] == 10 and cut["never_has_value"]["events_per_100k"] == 100
+    assert missingness_vs_conflict(panel.drop(columns="population"))["district_cut"]["ever_has_value"]["events_per_100k"] is None

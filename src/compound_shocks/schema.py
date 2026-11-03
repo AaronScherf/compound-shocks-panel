@@ -20,6 +20,7 @@ _SPEC: dict[str, dict[str, str]] = {
     },
     "rainfall": {"admin2_id": "text", "month": "text", "precip_mm": "number", "coverage_frac": "number"},
     "admin_boundaries": {"admin2_id": "text", "name": "text", "geometry": "geometry"},
+    "population": {"admin2_id": "text", "population": "number"},
 }
 
 # A provider that reports stocks (people present) instead of flows (people moving) fills this table; the config
@@ -34,6 +35,7 @@ KEYS: dict[str, list[str]] = {
     "rainfall": ["admin2_id", "month"],
     "admin_boundaries": ["admin2_id"],
     "displacement_stock": ["month", "dest_admin2", "origin_admin1"],
+    "population": ["admin2_id"],
 }
 
 ROLE_COLUMNS: dict[str, list[str]] = {role: list(cols) for role, cols in _SPEC.items()}
@@ -47,6 +49,7 @@ PANEL_COLUMNS: dict[str, Literal["core", "extension"]] = {
     "price_sorghum": "core",
     "price_wheat": "core",
     "displaced_individuals": "extension",
+    "population": "extension",
     "displaced_stock": "extension",
     "displaced_stock_change": "extension",
     "price_goat": "extension",

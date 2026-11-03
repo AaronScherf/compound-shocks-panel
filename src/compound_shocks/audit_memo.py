@@ -101,10 +101,12 @@ def _coverage(panel: pd.DataFrame, run_report: dict, boundaries: gpd.GeoDataFram
 def _missingness_vs_conflict(panel: pd.DataFrame) -> str:
     result = missingness_vs_conflict(panel, "price_sorghum")
     cut = result["district_cut"]
-    header = ["Group", "District-months", "Mean events", "Share with any event", "Mean fatalities"]
+    header = ["Group", "District-months", "Mean events", "Events per 100,000 residents", "Share with any event",
+              "Mean fatalities"]
 
     def row(label: str, stats: dict) -> list:
-        return [label, stats["district_months"], stats["mean_events"], stats["share_with_events"], stats["mean_fatalities"]]
+        return [label, stats["district_months"], stats["mean_events"], stats["events_per_100k"],
+                stats["share_with_events"], stats["mean_fatalities"]]
 
     districts = _table(header, [row("Districts that ever have a sorghum price", cut["ever_has_value"]),
                                 row("Districts that never do", cut["never_has_value"])])
@@ -121,6 +123,33 @@ def _missingness_vs_conflict(panel: pd.DataFrame) -> str:
         "They are descriptive: no test is run, and differences may reflect where markets are placed."),
         "Between districts:", districts, "Within districts that have a market, by month:", months, "By year:", years,
     ])
+
+
+def _market_districts(panel: pd.DataFrame, boundaries: gpd.GeoDataFrame) -> str:
+    """Why a district with a market can still have few prices: months with a price, and who lives there."""
+    if "population" not in panel:
+        return ""
+    by_district = panel.groupby("admin2_id").agg(
+        population=("population", "first"), priced=("price_sorghum", "count"), months=("month", "nunique"),
+        events=("events", "sum"),
+    )
+    names = dict(zip(boundaries["admin2_id"].astype(str), boundaries["name"]))
+    total = by_district["population"].sum()
+    market = by_district[by_district["priced"] > 0].copy()
+    market["share"] = market["priced"] / market["months"]
+    steady = int((market["share"] >= 0.75).sum())
+    lines = [
+        (f"{len(market)} of {len(by_district)} districts have a sorghum price in at least one month; {steady} have one in "
+        f"at least 75% of months. Those {len(market)} districts hold {market['population'].sum() / total:.0%} of the "
+        f"population in the panel, so district counts understate population coverage "
+        f"(districts with any price: {len(market) / len(by_district):.0%}; population in them: "
+        f"{market['population'].sum() / total:.0%})."),
+        "",
+    ]
+    market = market.sort_values("population", ascending=False)
+    rows = [[names.get(i, i), int(r.population) if pd.notna(r.population) else "n/a", f"{int(r.priced)} of {int(r.months)}",
+             f"{r.share:.0%}", int(r.events)] for i, r in market.iterrows()]
+    return "\n".join(lines) + "\n" + _table(["District", "Population", "Months with a price", "Share", "Events in period"], rows)
 
 
 def _acled_answers(descriptors: dict, raw_dir: Path) -> str:
@@ -241,6 +270,7 @@ def build_audit_memo(instance_dir: Path) -> Path:
         _coverage(panel, run_report, boundaries),
         "## Price gaps and conflict",
         _missingness_vs_conflict(panel),
+        _market_districts(panel, boundaries),
         "## Figures",
         _figures(outputs),
         "## ACLED: access, filters and manipulation",
