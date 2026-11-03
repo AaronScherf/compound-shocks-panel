@@ -38,10 +38,10 @@ Those commands need no data and no accounts. To rebuild the real Somalia panel:
 uv run python -m compound_shocks fetch --instance somalia --dry-run   # lists the public downloads
 uv run python -m compound_shocks fetch --instance somalia             # WFP, PRMN, COD-AB, COD-PS, CHIRPS (about 150 MB)
 # ACLED: see "Getting the data" below; put the export in instances/somalia/data/raw/conflict_events/
-uv run python -m compound_shocks reproduce --instance somalia         # about 3 minutes
+uv run python -m compound_shocks reproduce --instance somalia         # about 15 minutes (13 in our clean-room check)
 ```
 
-If a data file is missing, `reproduce` stops and names the folder it expected. Outputs go to
+Sudan takes about 20 minutes (17 in our check) and is memory-heavy in the rainfall step (an earlier run was killed for low memory, so close other programs). If a data file is missing, `reproduce` stops and names the folder it expected. Outputs go to
 `instances/<country>/outputs/` and `instances/<country>/data/derived/` (both git-ignored):
 
 - `data/derived/panel.csv`: the district-by-month panel.
