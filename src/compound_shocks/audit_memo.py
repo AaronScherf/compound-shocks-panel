@@ -82,7 +82,7 @@ def _coverage(panel: pd.DataFrame, run_report: dict, boundaries: gpd.GeoDataFram
     moves = panel[displacement_columns].notna().any(axis=1).groupby(panel["month"]).any()
     silent_months = sorted(moves.loc[~moves].index)
     lines = [
-        f"- The panel has {rows} rows: {profile['districts']} districts by {profile['months']} months.",
+        f"- The panel has {rows} rows: {profile['districts']} Admin 2 units (called districts below, whether districts or localities) by {profile['months']} months.",
         (f"- {price_share:.0%} of district-months have a sorghum or wheat price; "
         f"{len(no_price)} of {profile['districts']} districts have none in the whole period."),
         (f"- {profile['groups']['displacement']['non_null'] / rows:.0%} of district-months have a displacement value. "
@@ -170,7 +170,7 @@ def _observations(run_report: dict) -> str:
     warnings = [f"- {text}" for text in run_report["warnings"]] or ["- none"]
     caveats = [
         "- Prices are nominal and in local currency, so levels are not comparable across districts or over time.",
-        "- A missing displacement row is a missing value: PRMN lists reported flows only.",
+        "- A missing displacement row is a missing value, not zero: the source lists only what it recorded. Check the displacement descriptor for whether the column is a flow or a stock; the two are not comparable.",
         "- ACLED counts reflect reporting as well as events; low counts may mean little reporting.",
         "- Coverage differs by source, so any later analysis should state its sample and handling of missing values.",
     ]

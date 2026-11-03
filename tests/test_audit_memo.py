@@ -102,3 +102,9 @@ def test_memo_lists_market_districts_with_population_and_months_priced(memo_root
     assert "districts have a sorghum price in at least one month" in text
     assert "| District | Population | Months with a price | Share | Events in period |" in text
     assert "Events per 100,000 residents" in text
+
+
+def test_memo_caveats_do_not_assume_a_flow_source(memo_root):
+    text = memo_text(memo_root)
+    assert "PRMN lists" not in text
+    assert "flow or a stock" in text

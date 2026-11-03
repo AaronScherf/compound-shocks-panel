@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 (2026-11-03)
+
+- Audit memo wording: the "points to carry" list no longer says displacement is a PRMN flow (wrong for Sudan, which is a DTM stock), and the panel line says "Admin 2 units" instead of "districts" for Sudan's localities. No data or hash changes.
+
 ## 0.1.1 (2026-11-03)
 
 - Somalia population reading confirmed against the HDX file description (2014 UNFPA total, 2005 UNDP figure; modelled planning estimates).
