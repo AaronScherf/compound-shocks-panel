@@ -2,14 +2,38 @@ schema_version: 0.1.0
 role: conflict_events
 provider: ACLED
 title: ACLED event data export (Research Tier, myACLED account)
-query: Manual export from acleddata.com for Sudan, from 1997-01-01. Not yet downloaded.
+query: Manual export from acleddata.com for Sudan, event dates 1997-01-01 to 2025-10-31 (68,441 rows for 38,173 events). The API fetch needs ACLED_EMAIL and ACLED_PASSWORD environment variables and is untested against the live API.
 coverage_space: Sudan
-coverage_time: 'not yet downloaded'
-variables: []
+coverage_time: '1997-01-01/2025-10-31 in the file; 2021-01/2024-12 used (18,999 events)'
+variables:
+  - name: event_id
+    meaning: ACLED event identifier; the export repeats each event once per actor row, collapsed to one row
+    unit: text
+  - name: date
+    meaning: Event date, assigned to the calendar month
+    unit: date
+  - name: lat
+    meaning: Event latitude, used for point-in-polygon assignment to districts
+    unit: degrees
+  - name: lon
+    meaning: Event longitude
+    unit: degrees
+  - name: event_type
+    meaning: ACLED event type
+    unit: category
+  - name: sub_event_type
+    meaning: ACLED sub-event type
+    unit: category
+  - name: fatalities
+    meaning: Reported fatalities
+    unit: persons
+  - name: geo_precision
+    meaning: ACLED geographic precision code
+    unit: code
 access_class: account_required
 reuse_terms: ACLED EULA (8 July 2025) and Attribution Policy; raw rows must not be redistributed; aggregates and figures may be, with citation.
-verification_status: proposed
+verification_status: run on acquired data
 find_in_other_geography: Event-level political violence data with point coordinates, event type and fatalities, from ACLED.
 accessed: '2026-11-02'
-applied_filters: Sudan, to be set when the export is made.
-manipulation: none yet. Planned - the same steps as Somalia (repeated actor rows collapsed, point-in-polygon to COD-AB Admin 2, district-month totals).
+applied_filters: Sudan, event dates 1997-01-01 to 2025-10-31 in the export; the pipeline keeps 2021-01 to 2024-12.
+manipulation: Repeated actor rows collapsed to one row per event_id; events placed in districts by coordinates only; 296 in-period events fall outside every district and are counted as unassigned; aggregated to district-month totals of events and fatalities (18,703 events and 33,690 fatalities in the panel).
