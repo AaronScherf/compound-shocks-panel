@@ -1,7 +1,11 @@
 cff-version: 1.2.0
-message: If you use this work, please cite it as below.
+message: If you use this work, please cite it as below, and cite each data source as its provider requires.
 title: Compound Shocks Panel
+type: software
 authors:
-  - name: Aaron Scherf
+  - family-names: Scherf
+    given-names: Aaron
+    alias: AaronScherf
 version: 0.1.0
+repository-code: https://github.com/AaronScherf/compound-shocks-panel
 license: MIT

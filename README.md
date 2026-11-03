@@ -1,69 +1,162 @@
 # Compound Shocks Panel
 
-This project builds a district-by-month panel combining conflict events (ACLED), rainfall (CHIRPS), food
-prices (WFP) and displacement (PRMN) over official district boundaries, starting with Somalia (2021-01 to
-2025-10; displacement data end 2023-08). The aim is to find out what these open sources can and cannot support before any modeling. This
-phase is data work only: ingestion, spatial joins, a panel, exploratory plots and an audit memo. It makes no
-causal claims. The same steps run for another country by adding an instance folder (Sudan is the planned
-portability test).
+## What this is
 
-## Reproduce from scratch
+This project builds a **district-by-month table** (a "panel") that puts four kinds of open data side by side for
+one country: armed conflict (ACLED), rainfall (CHIRPS), food prices (WFP) and displacement (PRMN for Somalia,
+IOM DTM for Sudan), all matched to official district boundaries (OCHA COD-AB). The aim is to find out what these
+open sources can and cannot support before anyone models anything.
 
-```
-uv sync --locked
-uv run python -m compound_shocks fetch --instance somalia --dry-run   # lists the public downloads
-uv run python -m compound_shocks fetch --instance somalia            # WFP, PRMN, COD-AB, CHIRPS (about 150 MB)
-# ACLED needs a free account: export Somalia events from acleddata.com into
-# instances/somalia/data/raw/conflict_events/ (or set ACLED_EMAIL and ACLED_PASSWORD and use fetch_acled)
-uv run python -m compound_shocks reproduce --instance somalia        # about 3 minutes
-```
+This is **data work only** (version 0.1.0, "Phase A"): downloading, matching places and dates, building the
+panel, exploratory plots and an audit memo that says where the data are thin. It makes **no causal claims** and
+runs no regressions.
 
-Outputs land in `instances/somalia/outputs/`: `publishable_aggregates.csv` (the only file meant for sharing),
-`audit_memo.md` and `.html` (what the data contain and where they are incomplete), `manifest.json` (inputs, config, hashes, packages) and `run_report.json` (every processing decision applied, with
-counts, plus warnings). A second run with unchanged inputs and code does no work; a code change reruns every step.
-Raw and derived data are git-ignored. Each processing decision is listed in the decision log in `protocol.md` and
-lives in `instances/somalia/config.yaml` or `instances/somalia/crosswalks/`, never in the code.
+| Country | Units | Period | Notes |
+| --- | --- | --- | --- |
+| Somalia | 74 districts (Mogadishu's 17 districts merged into Banadir) | 2021-01 to 2025-10 (58 months) | Displacement (PRMN) ends in 2023-08 and is **missing, not zero**, after that. |
+| Sudan | 189 localities | 2021-01 to 2025-10 (58 months) | Displacement (DTM) has no reports before 2023-08. Shows that the method carries to a second country. |
+
+Everything is ordinary Python and runs on a laptop. **No paid AI subscription, AI API key or special hardware is
+needed**; nothing in the pipeline calls an AI service.
 
 ## Quick start
 
+You need [Python 3.11+](https://www.python.org/downloads/) and [uv](https://docs.astral.sh/uv/)
+(`pip install uv` works). Then, in a terminal:
+
 ```
-uv lock            # first time only: creates uv.lock; commit it
-uv sync --locked
-uv run reprokit validate
+git clone https://github.com/AaronScherf/compound-shocks-panel.git
+cd compound-shocks-panel
+uv sync --locked                 # installs the exact package versions
+uv run pytest                    # about 3 minutes; uses only made-up test data, no network
+uv run reprokit validate .       # checks the project's records are complete
 ```
 
-To reproduce the results, follow `protocol.md` and the run steps for your deliverables in `project.yaml`.
+Those commands need no data and no accounts. To rebuild the real Somalia panel:
 
-## Data
+```
+uv run python -m compound_shocks fetch --instance somalia --dry-run   # lists the public downloads
+uv run python -m compound_shocks fetch --instance somalia             # WFP, PRMN, COD-AB, COD-PS, CHIRPS (about 150 MB)
+# ACLED: see "Getting the data" below; put the export in instances/somalia/data/raw/conflict_events/
+uv run python -m compound_shocks reproduce --instance somalia         # about 3 minutes
+```
 
-Every data source has a descriptor in `data/descriptors/` saying what it is, how it was queried, its terms of
-use, and what to look for if you need the same kind of data for another place. Raw data is never stored in this
-repository. For sources that need an account, register with the provider, put your credentials in `.env`
-(copy `.env.example`), and run the fetch step.
+If a data file is missing, `reproduce` stops and names the folder it expected. Outputs go to
+`instances/<country>/outputs/` and `instances/<country>/data/derived/` (both git-ignored):
 
-## Panel columns
+- `data/derived/panel.csv`: the district-by-month panel.
+- `outputs/publishable_aggregates.csv`: event and fatality **totals** per district-month, the only file meant for sharing.
+- `outputs/audit_memo.md` and `.html`: what the data contain and where they are incomplete.
+- `outputs/manifest.json` (inputs, settings, hashes, package versions) and `run_report.json` (every processing decision, with counts).
 
-Core columns exist for every country and are the only ones used in cross-country comparison: `events`,
-`fatalities`, `precip_mm`, `coverage_frac`, `price_sorghum`, `price_wheat`.
+A second run with unchanged inputs and code does no work. To check you got the same result as the authors,
+compare the `sha256` of your `panel.csv` and `publishable_aggregates.csv` with those in
+`docs/verification/somalia-2026-11-02.md` and `docs/verification/sudan-2026-11-02.md`. Downloads come from live
+sites, so if a provider has revised a file since 2026-11-02 the hashes will differ; the `.fetch.json` files record
+each download's hash so you can see which input changed.
 
-Extension columns depend on what a country's sources provide: `population` (fixed district total, repeated each month), `displaced_individuals` (flows, PRMN), `displaced_stock` and `displaced_stock_change` (stocks, IOM DTM), `price_goat`,
-`wage_labor`, `tot_goat_sorghum`, `tot_wage_sorghum`.
+## Getting the data
 
-## AI and compute
+Raw data are never stored in this repository. `fetch` downloads everything public. Only ACLED needs an account.
+Every source is free.
 
-- This project is designed to run on an ordinary laptop with no GPU. See `compute.yaml` for the assumed limits.
-- No step needs a paid AI subscription, an API key for an AI service, or heavy compute. The pipeline is
-  ordinary Python (pandas, geopandas, rasterio) and runs on a laptop. Run time on the full Somalia
-  rasters is still to be measured (see the Task 14 verification note).
-- AI coding assistants helped write the code, but nothing in `reproduce` calls one. Raw ACLED rows must never
-  be sent to an external AI service (see `agents.yaml`).
-- The only account needed is a free ACLED registration, used with `ACLED_EMAIL` and `ACLED_PASSWORD`
-  environment variables.
+| Source | What it gives | How to get it |
+| --- | --- | --- |
+| **ACLED** (conflict events) | Event dates, places, types, fatalities | Register at <https://acleddata.com> with an institutional email (Research tier; the generic-email tier has no event-level data). Log in, use the data export tool for your country and dates, and save the CSV into `instances/<country>/data/raw/conflict_events/`. Alternatively set the environment variables `ACLED_EMAIL` and `ACLED_PASSWORD` and use the API fetch (not yet tested against the live API). Never write credentials into a file in this repository. |
+| **CHIRPS** (rainfall) | Monthly rainfall grid for Africa | `fetch` downloads it from the Climate Hazards Center. No account. |
+| **WFP food prices** | Market prices by month | `fetch`, from the Humanitarian Data Exchange (HDX). No account. |
+| **OCHA COD-AB** (boundaries) | Official district polygons | `fetch`, from HDX. No account. |
+| **OCHA COD-PS** (population) | District population | `fetch`, from HDX. No account. |
+| **PRMN** (Somalia displacement) | People arriving, by origin district | `fetch`, from HDX. No account. |
+| **IOM DTM** (Sudan displacement) | People displaced and present, by locality | `fetch`, from HDX. No account. |
 
-## Using this for another country or question
+## Running another country (Sudan walkthrough)
 
-See "Adapting this project" in `AGENTS.md`. The same steps work for a person or an AI agent.
+An "instance" is a folder holding one country's settings. Sudan was added by copying Somalia's and changing what
+differs. To do the same for a new country:
 
-## License and citation
+1. **Copy an instance.** `instances/sudan/` has the pieces: `config.yaml` (country code, period, boundary file),
+   `crosswalks/` (spelling fixes that match names across sources, for example WFP market names to official
+   localities), `data/descriptors/` (one file per source: where it came from, terms of use, how to find the
+   equivalent elsewhere) and `harmonization/`.
+2. **Find each source for your country.** Each descriptor has a `find_in_other_geography` line saying what to look
+   for (for example, boundaries are the HDX dataset `cod-ab-<iso3>`). Put downloads in
+   `instances/<country>/data/raw/<role>/`.
+3. **Adapters** read each provider's file layout into the project's standard columns. They live in
+   `src/compound_shocks/adapters/`. If your source already has an adapter (WFP, CHIRPS, COD-AB, COD-PS, ACLED),
+   change nothing. If not, write one. Sudan needed `adapters/iom_dtm.py`, because IOM DTM reports a **stock**
+   (people displaced and present at each assessment round) where Somalia's PRMN reports **flows**.
+4. **Write a harmonization record when a source differs in meaning.** Sudan's is
+   `instances/sudan/harmonization/displacement.yaml`. It says what PRMN and DTM each measure and what was decided:
+   keep the stock in its own columns, and use only the DTM "Overview" operation because the other operations
+   disagree with it by 2.4 to 3 times. The owner approves it before a run.
+5. **Check and run.** `uv run reprokit validate .`, then `fetch --instance <name>`, then `reproduce --instance <name>`.
+   Compare your `run_report.json` and manifest with the original run.
 
-Code: MIT (see `LICENSE`). Data and outputs: see each descriptor. Cite using `CITATION.cff`.
+## Core and extension columns
+
+Columns are marked so nobody compares what cannot be compared.
+
+- **Core columns** exist for every country and are the **only** ones to use in cross-country comparison:
+  `events`, `fatalities`, `precip_mm`, `coverage_frac`, `price_sorghum`, `price_wheat`.
+- **Extension columns** depend on what a country's sources provide and are never compared across countries:
+  - `population`: one fixed estimate per district repeated every month, not a time series (Somalia's is read as the
+    2014 UNFPA estimate; that reading is still to be confirmed),
+  - Somalia: `displaced_individuals`, a PRMN **flow** (people arriving, summed by origin district; missing after 2023-08),
+  - Sudan: `displaced_stock` and `displaced_stock_change`, a DTM **stock** and its month-to-month change (a proxy
+    that mixes arrivals with departures and re-counts; missing where there is no report, none before 2023-08),
+  - Somalia: `price_goat`, `wage_labor`, `tot_goat_sorghum`, `tot_wage_sorghum`.
+
+**The two displacement measures are deliberately separate columns and are not comparable.** One counts people
+moving in a period, the other counts people present at a point in time. They must not share a column, be pooled,
+or feed a cross-country statistic. Missing means "no report", never zero.
+
+Prices are sparse: Somalia has prices in about a third of district-months (37 of 74 districts), Sudan in 7% of
+locality-months (18 of 189 localities). Read the audit memo before using them.
+
+## Data licences and terms
+
+| Source | Terms | What this repo does |
+| --- | --- | --- |
+| ACLED | [ACLED EULA (8 July 2025)](https://acleddata.com/terms-of-use/) and Attribution Policy | Raw event rows are never committed or shared. Only district-month totals (`events`, `fatalities`; no coordinates, dates, IDs or notes) are produced for sharing, with citation. |
+| OCHA COD-AB (boundaries), COD-PS (population) | CC BY-IGO as listed on HDX (population: confirm on the dataset page) | Downloaded at run time, not redistributed here. |
+| WFP food prices | CC BY-IGO as listed on HDX | Same. |
+| IOM DTM | CC BY 4.0 / IOM data protection principles as listed on HDX | Same. |
+| UNHCR/NRC PRMN | CC BY as listed on HDX | Same. |
+| CHIRPS | Public data from the UCSB Climate Hazards Center; cite Funk et al. (2015), *Scientific Data* 2:150066 | Same. |
+
+Each source's terms and access date are in `instances/<country>/data/descriptors/`. They were taken from the
+providers' listings; re-check them on the provider's page before reusing any data.
+
+### ACLED: what you may and may not share
+
+- **Do not** publish, post or send anyone ACLED event-level rows, even a subset. Your export stays in `data/raw/`,
+  which git ignores.
+- **You may** share aggregated counts (the `publishable_aggregates.csv` totals) and figures built from them, with
+  ACLED's attribution: the source, what data and dates, and how it was changed ("aggregated from event-level data
+  into monthly counts by district by the author").
+- **Capture-date caveat.** ACLED revises past events, and the Research tier withholds roughly the latest 12 months.
+  An export taken later can differ from ours, so your totals may not match. Our exports were captured on
+  2026-10-31 (Somalia) and 2026-11-02 (Sudan); the capture date is in each conflict-events descriptor. Always cite
+  the capture date.
+- Raw ACLED rows must never be sent to an external AI service (see `agents.yaml`).
+- This reading of the terms has not been confirmed with ACLED. Low-count cells (one event in one district-month)
+  are an open question, so only totals are published until ACLED answers.
+
+## Records
+
+Every processing decision is in `protocol.md` (decision log) and lives in `instances/<country>/config.yaml` or
+`crosswalks/`, never hidden in code. `docs/verification/` holds counts and hashes for each run. `AGENTS.md` has the
+adaptation steps for a person or an AI agent. See `CHANGELOG.md` for versions.
+
+## How to cite
+
+Cite the software with `CITATION.cff` (GitHub's "Cite this repository" button reads it):
+
+> Scherf, A. (2026). *Compound Shocks Panel* (version 0.1.0) [Computer software]. https://github.com/AaronScherf/compound-shocks-panel
+
+Also cite each data source as its provider requires, ACLED's Attribution Policy in particular.
+
+## Licence
+
+Code: MIT (see `LICENSE`). Data and outputs: see the licence table above and each descriptor.
