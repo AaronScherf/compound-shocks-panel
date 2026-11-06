@@ -9,6 +9,7 @@ from reprokit.problems import Problem
 from .adapters.base import get_adapter
 from .fetch import FetchError, chirps_url, fetch_chirps, hdx
 from .pipeline import check_instance_gate, months_between, tasks
+from .run_metrics import finish_run, measure, previous_metrics, utc_now
 
 
 def _role_files(instance_dir: Path, config: dict) -> dict[str, list[Path]]:
@@ -40,15 +41,29 @@ def _reproduce(instance: str, root: Path) -> int:
         return 1
     derived = instance_dir / "data" / "derived"
     derived.mkdir(parents=True, exist_ok=True)
+    metrics_path = instance_dir / "outputs" / "run_metrics.json"
+    previous = previous_metrics(metrics_path)
+    run_date = utc_now()
+    recorded = {}
+    step_names = []
 
     def task_steps():
-        yield from tasks(instance_dir, config, role_files, root)
+        for step in tasks(instance_dir, config, role_files, root):
+            name = step["name"]
+            step_names.append(name)
+            action, args = step["actions"][0]
+            step["actions"] = [(measure, [action, args, name, recorded, run_date])]
+            yield step
 
     namespace = {
         "task_steps": task_steps,
         "DOIT_CONFIG": {"dep_file": str(derived / ".doit-db.json"), "backend": "json", "verbosity": 0},
     }
-    return int(bool(DoitMain(ModuleTaskLoader(namespace)).run(["run"])))
+    status = DoitMain(ModuleTaskLoader(namespace)).run(["run", "-a"] if previous is None else ["run"])
+    if status:
+        return 1
+    finish_run(instance_dir, step_names, recorded, previous, run_date)
+    return 0
 
 
 FETCHERS = {"prices": hdx.fetch_wfp_prices, "displacement": hdx.fetch_displacement, "admin_boundaries": hdx.fetch_codab,

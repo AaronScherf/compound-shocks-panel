@@ -3,6 +3,7 @@ import shutil
 
 import pandas as pd
 from conftest import make_instance
+from reprokit.manifest import hash_file
 
 from compound_shocks.cli import main
 
@@ -41,6 +42,38 @@ def test_end_to_end_on_fixture_instance(root):
     published = pd.read_csv(outputs / "publishable_aggregates.csv")
     assert list(published.columns) == ["admin2_id", "month", "events", "fatalities"]
     assert (outputs / "manifest.json").exists()
+    assert (outputs / "RUN_SUMMARY.md").is_file()
+
+
+def test_run_summary_records_measured_steps_and_output_hashes(root):
+    placeholder = root / "instances/somalia/outputs/.gitkeep"
+    placeholder.parent.mkdir(parents=True)
+    placeholder.touch()
+    assert reproduce(root) == 0
+    _, outputs = paths(root)
+    metrics = json.loads((outputs / "run_metrics.json").read_text(encoding="utf-8"))
+    assert metrics["schema_version"] == "0.1.0"
+    assert {step["name"] for step in metrics["steps"]} >= {"read:prices", "fuse", "outputs", "audit"}
+    assert all(step["elapsed_seconds"] >= 0 and step["peak_rss_mb"] > 0 for step in metrics["steps"])
+    assert all(step["rss_basis"] == "process" and not step["skipped"] for step in metrics["steps"])
+    hashes = {item["path"]: item["sha256"] for item in metrics["outputs"]}
+    assert ".gitkeep" not in hashes
+    assert hashes["publishable_aggregates.csv"] == hash_file(outputs / "publishable_aggregates.csv")
+    assert hashes["audit_memo.md"] == hash_file(outputs / "audit_memo.md")
+    summary = (outputs / "RUN_SUMMARY.md").read_text(encoding="utf-8")
+    assert "Synthland settings" in summary and "9 rows" in summary
+    assert "publishable_aggregates.csv" in summary
+
+
+def test_second_run_carries_forward_skipped_measurements(root):
+    assert reproduce(root) == 0
+    _, outputs = paths(root)
+    first = json.loads((outputs / "run_metrics.json").read_text(encoding="utf-8"))
+    assert reproduce(root) == 0
+    second = json.loads((outputs / "run_metrics.json").read_text(encoding="utf-8"))
+    for before, after in zip(first["steps"], second["steps"], strict=True):
+        assert after == {**before, "skipped": True}
+    assert "All steps were already up to date" in (outputs / "RUN_SUMMARY.md").read_text(encoding="utf-8")
 
 
 def test_fixture_values_reach_the_panel(root):

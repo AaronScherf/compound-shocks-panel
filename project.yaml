@@ -1,8 +1,9 @@
-schema_version: 0.1.0
+schema_version: 0.2.0
 name: Compound Shocks Panel
 kind: study
 purpose: side_project
 confidentiality: public
+quick_check: uv run reprokit quick-check
 # Replace the placeholder audience with the real readers and users; add one entry per audience.
 audiences:
   - name: primary-readers

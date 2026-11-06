@@ -4,7 +4,7 @@ version = "0.1.2"
 description = "Compound Shocks Panel"
 requires-python = ">=3.11"
 dependencies = [
-    "reprokit @ git+https://github.com/AaronScherf/reprokit@v0.2.0",
+    "reprokit @ git+https://github.com/AaronScherf/reprokit@v0.3.1",
     "pandas",
     "openpyxl",
     "geopandas",
@@ -13,6 +13,7 @@ dependencies = [
     "matplotlib",
     "doit",
     "requests",
+    "psutil",
 ]
 
 [dependency-groups]

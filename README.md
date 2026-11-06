@@ -11,10 +11,10 @@ This is **data work only** (version 0.1.2, "Phase A"): downloading, matching pla
 panel, exploratory plots and an audit memo that says where the data are thin. It makes **no causal claims** and
 runs no regressions.
 
-| Country | Units | Period | Notes |
-| --- | --- | --- | --- |
-| Somalia | 74 districts (Mogadishu's 17 districts merged into Banadir) | 2021-01 to 2025-10 (58 months) | Displacement (PRMN) ends in 2023-08 and is **missing, not zero**, after that. |
-| Sudan | 189 localities | 2021-01 to 2025-10 (58 months) | Displacement (DTM) has no reports before 2023-08. Shows that the method carries to a second country. |
+| Country | Measured run facts | Notes |
+| --- | --- | --- |
+| Somalia | [Run summary](instances/somalia/outputs/RUN_SUMMARY.md) after `reproduce` | Displacement (PRMN) is **missing, not zero**, after its last report. |
+| Sudan | [Run summary](instances/sudan/outputs/RUN_SUMMARY.md) after `reproduce` | Displacement (DTM) is missing before its first report. Shows that the method carries to a second country. |
 
 Everything is ordinary Python and runs on a laptop. **No paid AI subscription, AI API key or special hardware is
 needed**; nothing in the pipeline calls an AI service.
@@ -28,26 +28,30 @@ You need [Python 3.11+](https://www.python.org/downloads/) and [uv](https://docs
 git clone https://github.com/AaronScherf/compound-shocks-panel.git
 cd compound-shocks-panel
 uv sync --locked                 # installs the exact package versions
-uv run pytest                    # about 3 minutes; uses only made-up test data, no network
+uv run reprokit quick-check      # runs the pipeline on made-up data, without downloads
+uv run pytest                    # uses made-up test data, no network
 uv run reprokit validate .       # checks the project's records are complete
 ```
 
-Those commands need no data and no accounts. To rebuild the real Somalia panel:
+The quick check reports **PASS** when the synthetic panel is made and checked; it proves the basic software setup works, not that the real data or research results are correct. **FAIL** names what stopped and how to retry. Its script is `quick_check.py`. These commands need no real data or accounts. To rebuild the real Somalia panel:
 
 ```
 uv run python -m compound_shocks fetch --instance somalia --dry-run   # lists the public downloads
 uv run python -m compound_shocks fetch --instance somalia             # WFP, PRMN, COD-AB, COD-PS, CHIRPS (about 150 MB)
 # ACLED: see "Getting the data" below; put the export in instances/somalia/data/raw/conflict_events/
-uv run python -m compound_shocks reproduce --instance somalia         # about 15 minutes (13 in our clean-room check)
+uv run python -m compound_shocks reproduce --instance somalia
 ```
 
-Sudan takes about 20 minutes (17 in our check) and is memory-heavy in the rainfall step (an earlier run was killed for low memory, so close other programs). If a data file is missing, `reproduce` stops and names the folder it expected. Outputs go to
+Sudan is memory-heavy in the rainfall step (an earlier run was killed for low memory, so close other programs). If a data file is missing, `reproduce` stops and names the folder it expected. Outputs go to
 `instances/<country>/outputs/` and `instances/<country>/data/derived/` (both git-ignored):
 
 - `data/derived/panel.csv`: the district-by-month panel.
 - `outputs/publishable_aggregates.csv`: event and fatality **totals** per district-month, the only file meant for sharing.
 - `outputs/audit_memo.md` and `.html`: what the data contain and where they are incomplete.
 - `outputs/manifest.json` (inputs, settings, hashes, package versions) and `run_report.json` (every processing decision, with counts).
+- `outputs/RUN_SUMMARY.md`: the measured study window, final row count, file checksums, time, and memory for that run.
+
+Read the [Somalia run summary](instances/somalia/outputs/RUN_SUMMARY.md) or [Sudan run summary](instances/sudan/outputs/RUN_SUMMARY.md) after running `reproduce`. These pages are generated locally and are not stored in Git. If the quick check fails, read its message, run `uv sync --locked` if it asks you to restore packages, and try `uv run reprokit quick-check` again.
 
 A second run with unchanged inputs and code does no work. To check you got the same result as the authors,
 compare the `sha256` of your `panel.csv` and `publishable_aggregates.csv` with those in
@@ -111,8 +115,7 @@ Columns are marked so nobody compares what cannot be compared.
 moving in a period, the other counts people present at a point in time. They must not share a column, be pooled,
 or feed a cross-country statistic. Missing means "no report", never zero.
 
-Prices are sparse: Somalia has prices in about a third of district-months (37 of 74 districts), Sudan in 7% of
-locality-months (18 of 189 localities). Read the audit memo before using them.
+Prices are sparse in both countries. Read each instance's audit memo for the observed coverage before using them.
 
 ## Data licences and terms
 
