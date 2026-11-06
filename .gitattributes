@@ -1,0 +1,6 @@
+*.py text eol=lf
+*.yaml text eol=lf
+*.csv text eol=lf
+*.geojson text eol=lf
+*.xlsx -text
+*.tif -text
