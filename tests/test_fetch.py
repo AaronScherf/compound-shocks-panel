@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import logging
+import os
 import zipfile
 
 import pytest
@@ -188,8 +189,26 @@ def test_fetch_chirps_404_names_source_and_url(tmp_path, web):
 def test_acled_missing_credentials_explains_how_to_register(tmp_path, monkeypatch):
     monkeypatch.delenv("ACLED_EMAIL", raising=False)
     monkeypatch.delenv("ACLED_PASSWORD", raising=False)
-    with pytest.raises(FetchError, match=r"acleddata.com.*ACLED_EMAIL.*ACLED_PASSWORD"):
-        fetch_acled({"country": "Somalia"}, tmp_path)
+    with pytest.raises(FetchError) as caught:
+        fetch_acled({"country": "Somalia"}, tmp_path, root=tmp_path)
+    assert str(caught.value) == (
+        'ACLED: missing ACLED_EMAIL. Put it in .env at the project root; '
+        'see README.md "Accounts and keys". Register at https://acleddata.com.'
+    )
+
+
+def test_acled_reads_temp_project_env_and_names_missing_password(tmp_path, monkeypatch):
+    monkeypatch.setattr(os, "environ", os.environ.copy())
+    (tmp_path / ".env").write_text("ACLED_EMAIL='test@example.org'\n", encoding="utf-8")
+    monkeypatch.delenv("ACLED_EMAIL", raising=False)
+    monkeypatch.delenv("ACLED_PASSWORD", raising=False)
+    with pytest.raises(FetchError) as caught:
+        fetch_acled({"country": "Somalia"}, tmp_path, root=tmp_path)
+    assert str(caught.value) == (
+        'ACLED: missing ACLED_PASSWORD. Put it in .env at the project root; '
+        'see README.md "Accounts and keys". Register at https://acleddata.com.'
+    )
+    assert "test@example.org" not in str(caught.value)
 
 
 def acled_routes():
@@ -210,6 +229,21 @@ def test_acled_fetch_writes_csv_into_role_directory(tmp_path, monkeypatch, web):
     web(acled_routes())
     path = fetch_acled({"country": "Somalia"}, tmp_path)
     assert path.parent == tmp_path and "event_id_cnty" in path.read_text(encoding="utf-8")
+
+
+def test_acled_fetch_uses_temp_project_env(tmp_path, monkeypatch, web, capsys, caplog):
+    monkeypatch.setattr(os, "environ", os.environ.copy())
+    monkeypatch.delenv("ACLED_EMAIL", raising=False)
+    monkeypatch.delenv("ACLED_PASSWORD", raising=False)
+    (tmp_path / ".env").write_text(
+        f"ACLED_EMAIL='me@example.org'\nACLED_PASSWORD=\"{SECRET}\"\n", encoding="utf-8"
+    )
+    web(acled_routes())
+    with caplog.at_level(logging.DEBUG):
+        fetch_acled({"country": "Somalia"}, tmp_path / "raw", root=tmp_path)
+    output = capsys.readouterr()
+    assert SECRET not in output.out + output.err + caplog.text
+    assert "me@example.org" not in output.out + output.err + caplog.text
 
 
 def test_credentials_never_appear_in_logs_or_exceptions(tmp_path, monkeypatch, web, caplog):

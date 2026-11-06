@@ -62,6 +62,14 @@ compare the `sha256` of your `panel.csv` and `publishable_aggregates.csv` with t
 sites, so if a provider has revised a file since 2026-11-02 the hashes will differ; the `.fetch.json` files record
 each download's hash so you can see which input changed.
 
+## Accounts and keys
+
+Some data providers require an account. Copy `.env.example` to `.env` in the project root (`copy .env.example .env`
+in Windows PowerShell, or `cp .env.example .env` on Mac), then fill in the keys you need. For the optional ACLED
+API fetch, set `ACLED_EMAIL` and `ACLED_PASSWORD`. The DTM subscription key placeholders are for DTM endpoints that
+require them; the current DTM fetch does not read those keys. Existing environment variables take precedence over
+`.env`. The `.env` file is git-ignored and must never be committed.
+
 ## Getting the data
 
 Raw data are never stored in this repository. `fetch` downloads everything public. Only ACLED needs an account.
@@ -69,7 +77,7 @@ Every source is free.
 
 | Source | What it gives | How to get it |
 | --- | --- | --- |
-| **ACLED** (conflict events) | Event dates, places, types, fatalities | Register at <https://acleddata.com> with an institutional email (Research tier; the generic-email tier has no event-level data). Log in, use the data export tool for your country and dates, and save the CSV into `instances/<country>/data/raw/conflict_events/`. Alternatively set the environment variables `ACLED_EMAIL` and `ACLED_PASSWORD` and use the API fetch (not yet tested against the live API). Never write credentials into a file in this repository. |
+| **ACLED** (conflict events) | Event dates, places, types, fatalities | Register at <https://acleddata.com> with an institutional email (Research tier; the generic-email tier has no event-level data). Log in, use the data export tool for your country and dates, and save the CSV into `instances/<country>/data/raw/conflict_events/`. Alternatively put `ACLED_EMAIL` and `ACLED_PASSWORD` in `.env`, which is git-ignored, and use the API fetch (not yet tested against the live API). |
 | **CHIRPS** (rainfall) | Monthly rainfall grid for Africa | `fetch` downloads it from the Climate Hazards Center. No account. |
 | **WFP food prices** | Market prices by month | `fetch`, from the Humanitarian Data Exchange (HDX). No account. |
 | **OCHA COD-AB** (boundaries) | Official district polygons | `fetch`, from HDX. No account. |
