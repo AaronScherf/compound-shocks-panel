@@ -11,10 +11,13 @@ This is **data work only** (version 0.1.2, "Phase A"): downloading, matching pla
 panel, exploratory plots and an audit memo that says where the data are thin. It makes **no causal claims** and
 runs no regressions.
 
-| Country | Measured run facts | Notes |
-| --- | --- | --- |
-| Somalia | [Run summary](instances/somalia/outputs/RUN_SUMMARY.md) after `reproduce` | Displacement (PRMN) is **missing, not zero**, after its last report. |
-| Sudan | [Run summary](instances/sudan/outputs/RUN_SUMMARY.md) after `reproduce` | Displacement (DTM) is missing before its first report. Shows that the method carries to a second country. |
+| Country | Units | Period | Notes |
+| --- | --- | --- | --- |
+| Somalia | 74 districts (Mogadishu's 17 districts merged into Banadir) | 2021-01 to 2025-10 (58 months) | Displacement (PRMN) is **missing, not zero**, after its last report (2023-08). Measured run facts: [run summary](instances/somalia/outputs/RUN_SUMMARY.md) after `reproduce`. |
+| Sudan | 189 localities | 2021-01 to 2025-10 (58 months) | Displacement (DTM) is missing before its first report (2023-08). Shows that the method carries to a second country. Measured run facts: [run summary](instances/sudan/outputs/RUN_SUMMARY.md) after `reproduce`. |
+
+Units and period come from each instance's `config.yaml`. Run time, memory and file checksums are measured: they appear in the generated run summaries, and the authors' first clean-room measurements (including run time) are in [Somalia](docs/verification/somalia-2026-11-02.md) and [Sudan](docs/verification/sudan-2026-11-02.md). Real-data runs take tens of minutes.
+
 
 Everything is ordinary Python and runs on a laptop. **No paid AI subscription, AI API key or special hardware is
 needed**; nothing in the pipeline calls an AI service.
