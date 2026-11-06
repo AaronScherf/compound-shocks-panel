@@ -19,6 +19,6 @@ variables:
     meaning: Assessment date, reduced to the last report in each month
     unit: date
 access_class: open
-reuse_terms: CC BY 4.0 / IOM data protection principles (as described in the Gemini portability note; confirm on the HDX page).
+reuse_terms: 'Other (HDX "hdx-other"). IOM terms read on the HDX dataset page sdn-iom-dtm-from-api on 2026-11-06: the materials may be viewed, downloaded and printed for non-commercial use only, without any right to sell, resell, redistribute or create derivative works. Credit "Source: International Organization for Migration (IOM), Displacement Tracking Matrix (DTM)" and include the HDX dataset URL. Owner''s reading, 2026-11-06: this project is non-commercial student research, which the terms allow. DTM figures are not redistributed: panel.csv is git-ignored and not shared, and the published aggregates hold ACLED totals only. Re-read these terms before publishing any file that contains DTM figures. The DTM API (subscription key) has separate account terms, not yet recorded here.'
 verification_status: run on acquired data
 find_in_other_geography: Monthly district-level displacement; DTM is the usual source where PRMN does not exist, and it records stocks, not flows.
