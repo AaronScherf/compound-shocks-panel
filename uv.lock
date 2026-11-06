@@ -268,7 +268,7 @@ requires-dist = [
     { name = "pandas" },
     { name = "psutil" },
     { name = "rasterio" },
-    { name = "reprokit", git = "https://github.com/AaronScherf/reprokit?rev=v0.3.1" },
+    { name = "reprokit", git = "https://github.com/AaronScherf/reprokit?rev=v0.3.2" },
     { name = "requests" },
     { name = "shapely" },
 ]
@@ -1622,8 +1622,8 @@ wheels = [
 
 [[package]]
 name = "reprokit"
-version = "0.3.1"
-source = { git = "https://github.com/AaronScherf/reprokit?rev=v0.3.1#23e9af2d6859f62a961d7bf14ef5a6ac60311deb" }
+version = "0.3.2"
+source = { git = "https://github.com/AaronScherf/reprokit?rev=v0.3.2#1df3791a0a52cee8ae4d5e8f37079aad52c607d5" }
 dependencies = [
     { name = "jsonschema" },
     { name = "pyyaml" },

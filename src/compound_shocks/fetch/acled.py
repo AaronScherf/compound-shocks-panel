@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pandas as pd
 import requests
+from reprokit.env import load_project_env
 
 from compound_shocks.fetch.core import TIMEOUT_SECONDS, FetchError, get, save, sha256_of
-from compound_shocks.fetch.project_env import load_project_env
 
 TOKEN_URL = "https://acleddata.com/oauth/token"
 DATA_URL = "https://acleddata.com/api/acled/read"
