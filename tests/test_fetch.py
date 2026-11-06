@@ -193,7 +193,8 @@ def test_acled_missing_credentials_explains_how_to_register(tmp_path, monkeypatc
         fetch_acled({"country": "Somalia"}, tmp_path, root=tmp_path)
     assert str(caught.value) == (
         'ACLED: missing ACLED_EMAIL. Put it in .env at the project root; '
-        'see README.md "Accounts and keys". Register at https://acleddata.com.'
+        'see README.md "Accounts and keys". Register at https://acleddata.com, '
+        'or download the file by hand as described in Getting the data.'
     )
 
 
@@ -206,7 +207,8 @@ def test_acled_reads_temp_project_env_and_names_missing_password(tmp_path, monke
         fetch_acled({"country": "Somalia"}, tmp_path, root=tmp_path)
     assert str(caught.value) == (
         'ACLED: missing ACLED_PASSWORD. Put it in .env at the project root; '
-        'see README.md "Accounts and keys". Register at https://acleddata.com.'
+        'see README.md "Accounts and keys". Register at https://acleddata.com, '
+        'or download the file by hand as described in Getting the data.'
     )
     assert "test@example.org" not in str(caught.value)
 
@@ -256,11 +258,52 @@ def test_credentials_never_appear_in_logs_or_exceptions(tmp_path, monkeypatch, w
     assert "me@example.org" not in str(caught.value) and "me@example.org" not in caplog.text
 
 
+def test_acled_data_non_200_contains_no_response_body(tmp_path, monkeypatch, web):
+    monkeypatch.setenv("ACLED_EMAIL", "me@example.org")
+    monkeypatch.setenv("ACLED_PASSWORD", SECRET)
+    fake = web(acled_routes() | {"api/acled/read": FakeResponse(b"PRIVATE_SYNTHETIC_ROW", status=503)})
+    with pytest.raises(FetchError) as caught:
+        fetch_acled({"country": "Somalia"}, tmp_path)
+    assert "503" in str(caught.value) and "PRIVATE_SYNTHETIC_ROW" not in str(caught.value)
+    assert len(fake.calls) == 2
+
+
+def test_cli_acled_save_parameters_and_no_row_output(root, monkeypatch, web, capsys):
+    monkeypatch.setenv("ACLED_EMAIL", "me@example.org")
+    monkeypatch.setenv("ACLED_PASSWORD", SECRET)
+    marker = "PRIVATE_SYNTHETIC_ROW"
+    config = root / "instances/somalia/config.yaml"
+    config.write_text(config.read_text(encoding="utf-8").replace("Synthland", "Somalia")
+                      .replace("2021-03-31", "2025-10-31"), encoding="utf-8")
+    folder = root / "instances/somalia/data/raw/conflict_events"
+    for path in folder.glob("*.csv"):
+        path.unlink()
+    routes = acled_routes()
+
+    def data(kwargs):
+        assert kwargs["params"] == {"country": "Somalia", "event_date": "2021-01-01|2025-10-31",
+                                    "event_date_where": "BETWEEN", "_format": "json", "limit": 0}
+        return FakeResponse(payload={"data": [{"event_id_cnty": "A1", "notes": marker}]})
+
+    routes["api/acled/read"] = data
+    fake = web(routes)
+    assert main(["fetch", "--instance", "somalia", "--root", str(root), "--role", "conflict_events"]) == 0
+    output = capsys.readouterr()
+    assert marker not in output.out + output.err
+    assert "1 rows" in output.out and "sha256" in output.out
+    assert len(list(folder.glob("*.csv"))) == 1
+    assert len(list(folder.glob("*.fetch.json"))) == 1
+    assert main(["fetch", "--instance", "somalia", "--root", str(root), "--role", "conflict_events"]) == 0
+    assert len(fake.calls) == 2
+    assert "move or remove" in capsys.readouterr().out
+
+
 def test_cli_fetch_dry_run_lists_urls_and_downloads_nothing(root, web, capsys):
     fake = web({})
     assert main(["fetch", "--instance", "somalia", "--root", str(root), "--dry-run"]) == 0
     out = capsys.readouterr().out
     assert "chirps-v2.0.2021.01.tif.gz" in out and "wfp-food-prices-for-somalia" in out
+    assert "ACLED API, Synthland, 2021-01-01 to 2021-03-31" in out
     assert fake.calls == []
 
 
@@ -294,4 +337,5 @@ def test_cli_fetch_sudan_lists_the_sudan_datasets(root, capsys):
     assert main(["fetch", "--instance", "sudan", "--root", str(root), "--dry-run"]) == 0
     out = capsys.readouterr().out
     assert "wfp-food-prices-for-sudan" in out and "sdn-iom-dtm-from-api" in out and "cod-ab-sdn" in out
+    assert "ACLED API, Synthland" in out
     assert "somalia" not in out.lower()

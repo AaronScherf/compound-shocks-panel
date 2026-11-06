@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `fetch --instance <name>` now downloads ACLED events for the configured country and period when account credentials are available, records a checksum beside the ignored raw file, and avoids replacing an existing conflict-events CSV. Live API downloads were checked for Somalia and Sudan on 2026-11-06.
+
 ## 0.1.2 (2026-11-03)
 
 - Audit memo wording: the "points to carry" list no longer says displacement is a PRMN flow (wrong for Sudan, which is a DTM stock), and the panel line says "Admin 2 units" instead of "districts" for Sudan's localities. No data or hash changes.

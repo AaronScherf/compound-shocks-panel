@@ -1,4 +1,6 @@
 import argparse
+import csv
+import json
 from pathlib import Path
 
 from doit.cmd_base import ModuleTaskLoader
@@ -7,7 +9,7 @@ from reprokit.loader import load_yaml
 from reprokit.problems import Problem
 
 from .adapters.base import get_adapter
-from .fetch import FetchError, chirps_url, fetch_chirps, hdx
+from .fetch import FetchError, chirps_url, fetch_acled, fetch_chirps, hdx
 from .pipeline import check_instance_gate, months_between, tasks
 from .run_metrics import finish_run, measure, previous_metrics, utc_now
 
@@ -71,6 +73,23 @@ FETCHERS = {"prices": hdx.fetch_wfp_prices, "displacement": hdx.fetch_displaceme
 CHIRPS_PROVIDER = "UCSB CHC CHIRPS"
 
 
+def _fetch_acled_role(raw_dir: Path, config: dict, root: Path) -> None:
+    if list(raw_dir.glob("*.csv")):
+        print(f"conflict_events: a file already exists in {raw_dir}; move or remove it and rerun fetch --role conflict_events to refresh.")
+        return
+    period = config["period"]
+    path = fetch_acled(
+        {"country": config["geography"], "event_date": f'{period["start"]}|{period["end"]}',
+         "event_date_where": "BETWEEN"},
+        raw_dir,
+        root=root,
+    )
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        rows = sum(1 for _ in csv.DictReader(handle))
+    record = json.loads(path.with_name(path.name + ".fetch.json").read_text(encoding="utf-8"))
+    print(f"conflict_events: saved {path.name} ({path.stat().st_size} bytes, {rows} rows, sha256 {record['sha256'][:8]})")
+
+
 def _fetch(instance: str, root: Path, dry_run: bool, roles: list[str] | None = None) -> int:
     instance_dir = root / "instances" / instance
     if not (instance_dir / "config.yaml").exists():
@@ -89,8 +108,10 @@ def _fetch(instance: str, root: Path, dry_run: bool, roles: list[str] | None = N
         provider = source["provider"]
         if roles and role not in roles:
             continue
-        if role == "conflict_events":
-            print(f"{role}: {provider} is a manual export (or fetch_acled with ACLED_EMAIL and ACLED_PASSWORD); skipped")
+        if role == "conflict_events" and provider == "ACLED":
+            period = config["period"]
+            downloads.append((f"{role}: ACLED API, {config['geography']}, {period['start']} to {period['end']}",
+                              lambda role=role: _fetch_acled_role(raw / role, config, root)))
         elif role == "rainfall" and provider == CHIRPS_PROVIDER:
             downloads.append((f"{role}: CHIRPS v2.0, {len(months)} monthly files, e.g. {chirps_url(months[0])}",
                               lambda role=role: fetch_chirps(months, raw / role)))
@@ -111,7 +132,7 @@ def _fetch(instance: str, root: Path, dry_run: bool, roles: list[str] | None = N
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="compound-shocks")
     subcommands = parser.add_subparsers(dest="command", required=True)
-    fetch = subcommands.add_parser("fetch", help="download the public sources for one instance into data/raw")
+    fetch = subcommands.add_parser("fetch", help="download sources for one instance into data/raw")
     fetch.add_argument("--instance", required=True)
     fetch.add_argument("--root", type=Path, default=Path("."))
     fetch.add_argument("--role", action="append", help="fetch only this role (repeatable); default is every role")

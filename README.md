@@ -39,9 +39,8 @@ uv run reprokit validate .       # checks the project's records are complete
 The quick check reports **PASS** when the synthetic panel is made and checked; it proves the basic software setup works, not that the real data or research results are correct. **FAIL** names what stopped and how to retry. Its script is `quick_check.py`. These commands need no real data or accounts. To rebuild the real Somalia panel:
 
 ```
-uv run python -m compound_shocks fetch --instance somalia --dry-run   # lists the public downloads
-uv run python -m compound_shocks fetch --instance somalia             # WFP, PRMN, COD-AB, COD-PS, CHIRPS (about 150 MB)
-# ACLED: see "Getting the data" below; put the export in instances/somalia/data/raw/conflict_events/
+uv run python -m compound_shocks fetch --instance somalia --dry-run   # lists all downloads, including ACLED
+uv run python -m compound_shocks fetch --instance somalia             # ACLED, WFP, PRMN, COD-AB, COD-PS, CHIRPS
 uv run python -m compound_shocks reproduce --instance somalia
 ```
 
@@ -65,20 +64,19 @@ each download's hash so you can see which input changed.
 ## Accounts and keys
 
 Some data providers require an account. Copy `.env.example` to `.env` in the project root (`copy .env.example .env`
-in Windows PowerShell, or `cp .env.example .env` on Mac), then fill in the keys you need. The ACLED download function in the code (`compound_shocks.fetch.fetch_acled`) reads `ACLED_EMAIL` and
-`ACLED_PASSWORD` from `.env`, but the `fetch` command does not run it yet and it has never been tested against
-ACLED's live service. Until it is connected, use the manual ACLED export described below. The DTM subscription key placeholders are for DTM endpoints that
+in Windows PowerShell, or `cp .env.example .env` on Mac), then fill in the keys you need. `fetch` downloads ACLED with your account using `ACLED_EMAIL` and
+`ACLED_PASSWORD`. The API download was verified for Somalia and Sudan on 2026-11-06. A manual export still works as described below. Raw ACLED event rows are never committed or shared. The DTM subscription key placeholders are for DTM endpoints that
 require them; the current DTM fetch does not read those keys. Existing environment variables take precedence over
 `.env`. The `.env` file is git-ignored and must never be committed.
 
 ## Getting the data
 
-Raw data are never stored in this repository. `fetch` downloads everything public. Only ACLED needs an account.
+Raw data are never stored in this repository. `fetch` downloads the sources below. Only ACLED needs an account.
 Every source is free.
 
 | Source | What it gives | How to get it |
 | --- | --- | --- |
-| **ACLED** (conflict events) | Event dates, places, types, fatalities | Register at <https://acleddata.com> with an institutional email (Research tier; the generic-email tier has no event-level data). Log in, use the data export tool for your country and dates, and save the CSV into `instances/<country>/data/raw/conflict_events/`. The `fetch` command does not download ACLED yet; see "Accounts and keys" above for the untested API function. |
+| **ACLED** (conflict events) | Event dates, places, types, fatalities | Register at <https://acleddata.com> with an institutional email (Research tier; the generic-email tier has no event-level data). Set your account credentials as described above and run `fetch`, or log in, use the data export tool for your country and dates, and save the CSV into `instances/<country>/data/raw/conflict_events/`. Move an existing CSV out of that folder before fetching a replacement. |
 | **CHIRPS** (rainfall) | Monthly rainfall grid for Africa | `fetch` downloads it from the Climate Hazards Center. No account. |
 | **WFP food prices** | Market prices by month | `fetch`, from the Humanitarian Data Exchange (HDX). No account. |
 | **OCHA COD-AB** (boundaries) | Official district polygons | `fetch`, from HDX. No account. |
