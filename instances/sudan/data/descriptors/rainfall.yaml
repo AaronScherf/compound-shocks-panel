@@ -13,6 +13,6 @@ variables:
     meaning: Share of the locality's area covered by valid cells
     unit: fraction
 access_class: open
-reuse_terms: CHIRPS data are public; confirm the citation and terms on the CHC page.
+reuse_terms: 'Public domain. The CHC states that the author waived copyright and related rights in CHIRPS and that the data are in the public domain as registered with Creative Commons (https://www.chc.ucsb.edu/data/chirps, read 2026-11-06). Citation requested: Funk et al. 2015, Scientific Data 2:150066, doi:10.1038/sdata.2015.66.'
 verification_status: run on acquired data
 find_in_other_geography: The same CHIRPS v2.0 Africa monthly product covers any African country.

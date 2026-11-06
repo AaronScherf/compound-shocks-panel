@@ -10,7 +10,7 @@ variables:
     meaning: Total population of the district
     unit: persons
 access_class: open
-reuse_terms: As listed on the HDX dataset page (confirm before reuse).
+reuse_terms: 'CC BY (Creative Commons Attribution), as listed on the HDX dataset page "Sudan - Subnational Population Statistics" (cod-ps-sdn; source Central Bureau of Statistics Sudan, published by UNFPA; read 2026-11-06). Credit the source and link the dataset page.'
 verification_status: run on acquired data
 find_in_other_geography: OCHA COD-PS for the country (dataset cod-ps-<iso3> on HDX), with the same Admin 2 P-codes as COD-AB.
 accessed: '2026-11-02'

@@ -22,6 +22,6 @@ variables:
     meaning: People reported arriving; the panel sums by origin district
     unit: persons
 access_class: open
-reuse_terms: CC BY (as listed on HDX); verify on the dataset page.
+reuse_terms: 'CC BY (Creative Commons Attribution), as listed on the HDX dataset page "Somalia: Internally Displaced Persons (IDPs)" (provider UNHCR, PRMN; read 2026-11-06). Credit UNHCR and PRMN and link the dataset page.'
 verification_status: run on acquired data
 find_in_other_geography: Monthly district-level displacement movements with a reason for displacement, ideally origin and destination districts (Sudan uses IOM DTM, which records stocks, not flows; see the Sudan findings).
