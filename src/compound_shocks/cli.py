@@ -122,11 +122,16 @@ def _fetch(instance: str, root: Path, dry_run: bool, roles: list[str] | None = N
         else:
             print(Problem(str(instance_dir), role, f"no pinned fetcher for provider {provider!r}; download it by hand"))
             return 1
+    failed = False
     for description, action in downloads:
         print(description)
         if not dry_run:
-            action()
-    return 0
+            try:
+                action()
+            except FetchError as exc:  # one failing source (for example, no ACLED login) must not block the others
+                print(Problem(str(root), "fetch", str(exc)))
+                failed = True
+    return 1 if failed else 0
 
 
 def main(argv: list[str] | None = None) -> int:

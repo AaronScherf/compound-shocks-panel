@@ -307,6 +307,19 @@ def test_cli_fetch_dry_run_lists_urls_and_downloads_nothing(root, web, capsys):
     assert fake.calls == []
 
 
+def test_cli_fetch_continues_other_sources_when_acled_has_no_login(root, monkeypatch, web, capsys):
+    monkeypatch.delenv("ACLED_EMAIL", raising=False)
+    monkeypatch.delenv("ACLED_PASSWORD", raising=False)
+    for path in (root / "instances/somalia/data/raw/conflict_events").glob("*.csv"):
+        path.unlink()
+    fake = web({"package_show": hdx_package(("Somalia - Food Prices", "CSV")), "files.example": FakeResponse(b"date")})
+    code = main(["fetch", "--instance", "somalia", "--root", str(root), "--role", "conflict_events", "--role", "prices"])
+    out = capsys.readouterr().out
+    assert code == 1  # a failed source is still reported as a failure
+    assert "ACLED: missing ACLED_EMAIL" in out
+    assert any("files.example" in call[1] for call in fake.calls)  # prices were still downloaded
+
+
 def test_cli_fetch_role_filter_downloads_only_that_role(root, web, capsys):
     fake = web({"package_show": hdx_package(("Somalia - Food Prices", "CSV")), "files.example": FakeResponse(b"date")})
     assert main(["fetch", "--instance", "somalia", "--root", str(root), "--role", "prices"]) == 0
